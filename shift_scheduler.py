@@ -8,7 +8,7 @@ def generate_date_range(start_date, end_date):
         current_date += timedelta(days=1)
 
 def is_weekend(date):
-    return date.weekday() >= 4
+    return date.weekday() >= 4  # Friday, Saturday, or Sunday
 
 def is_holiday(date_str, holidays):
     return date_str in holidays
@@ -19,7 +19,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         if last_date and (date - last_date).days < 3:
             return False
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-        if weekend_tracker[worker.worker_id] >= 3:
+        if weekend_tracker[worker.worker_id] >= 4:  # No 4 consecutive weekends
             return False
     return True
 
