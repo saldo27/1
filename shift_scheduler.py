@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import random
+from icalendar import Calendar, Event
 
 def generate_date_range(start_date, end_date):
     current_date = start_date
@@ -89,3 +90,44 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
 
     return schedule
 
+def export_to_ical(schedule_text):
+    cal = Calendar()
+    cal.add('prodid', '-//Shift Scheduler//')
+    cal.add('version', '2.0')
+
+    for line in schedule_text.split('\n'):
+        if line.startswith("Job"):
+            job = line.split()[1][:-1]
+        elif line.strip():
+            date_str, worker_id = line.strip().split(': ')
+            date = datetime.strptime(date_str, "%d/%m/%Y")
+            event = Event()
+            event.add('summary', f"{job} shift")
+            event.add('dtstart', date)
+            event.add('dtend', date + timedelta(days=1))
+            event.add('description', f"Worker ID: {worker_id}")
+            cal.add_component(event)
+
+    with open('schedule.ics', 'wb') as f:
+        f.write(cal.to_ical())
+
+def generate_worker_report(schedule_text):
+    report = ""
+    worker_shifts = {}
+
+    for line in schedule_text.split('\n'):
+        if line.startswith("Job"):
+            job = line.split()[1][:-1]
+        elif line.strip():
+            date_str, worker_id = line.strip().split(': ')
+            if worker_id not in worker_shifts:
+                worker_shifts[worker_id] = []
+            worker_shifts[worker_id].append(f"{job} on {date_str}")
+
+    for worker_id, shifts in worker_shifts.items():
+        report += f"Worker ID: {worker_id}\n"
+        for shift in shifts:
+            report += f"  {shift}\n"
+        report += "\n"
+
+    return report

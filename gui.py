@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QLineEdit, QPushButton, QTextEdit, QFormLayout
 )
 from worker import Worker
-from shift_scheduler import schedule_shifts
+from shift_scheduler import schedule_shifts, export_to_ical, generate_worker_report
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -22,6 +22,8 @@ class MainWindow(QMainWindow):
         self.output_display = QTextEdit()
         self.output_display.setReadOnly(True)
         self.schedule_button = QPushButton("Schedule Shifts")
+        self.export_button = QPushButton("Export to Calendar")
+        self.report_button = QPushButton("Generate Worker Report")
 
         # Initialize widgets for worker input
         self.worker_id_input = QLineEdit()
@@ -37,6 +39,8 @@ class MainWindow(QMainWindow):
         # Connect buttons to functions
         self.schedule_button.clicked.connect(self.schedule_shifts)
         self.add_worker_button.clicked.connect(self.add_worker)
+        self.export_button.clicked.connect(self.export_schedule)
+        self.report_button.clicked.connect(self.generate_report)
 
         # Setup layout
         layout = QVBoxLayout()
@@ -52,6 +56,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Enter previous shifts if any (optional, leave blank if none):"))
         layout.addWidget(self.previous_shifts_input)
         layout.addWidget(self.schedule_button)
+        layout.addWidget(self.export_button)
+        layout.addWidget(self.report_button)
         layout.addWidget(QLabel("Schedule Output:"))
         layout.addWidget(self.output_display)
 
@@ -120,6 +126,20 @@ class MainWindow(QMainWindow):
                 output += f"  {date}: {worker}\n"
 
         self.output_display.setText(output)
+
+    def export_schedule(self):
+        schedule_text = self.output_display.toPlainText()
+        export_to_ical(schedule_text)
+
+    def generate_report(self):
+        schedule_text = self.output_display.toPlainText()
+        report = generate_worker_report(schedule_text)
+        report_window = QTextEdit()
+        report_window.setReadOnly(True)
+        report_window.setText(report)
+        report_window.setWindowTitle("Worker Report")
+        report_window.resize(600, 400)
+        report_window.show()
 
 app = QApplication(sys.argv)
 
