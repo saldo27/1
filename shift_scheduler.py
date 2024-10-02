@@ -46,16 +46,14 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             is_weekend_day = is_weekend(date) or is_holiday(date_str, holidays_set)
 
             for job in jobs:
-                daily_schedule = {}
-                if date_str in schedule[job]:
-                    continue
+                if date_str not in schedule[job]:
+                    schedule[job][date_str] = {}
 
                 mandatory_workers = [worker for worker in workers if date_str in worker.mandatory_shifts and job not in worker.job_incompatibilities]
                 if mandatory_workers:
                     worker = mandatory_workers[0]
                 else:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
-
                     available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set)]
 
                     if not available_workers:
@@ -64,9 +62,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
 
                     worker = random.choice(available_workers)
 
-                daily_schedule[job] = worker.worker_id
+                schedule[job][date_str] = worker.worker_id
                 worker.shift_quota -= 1
-                schedule[job][date_str] = daily_schedule
 
                 if is_weekend_day:
                     weekend_tracker[worker.worker_id] += 1
