@@ -35,6 +35,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     weekend_tracker = {worker.worker_id: 0 for worker in workers}
     past_date = datetime.strptime("01/01/1900", "%d/%m/%Y")
     last_shift_date = {worker.worker_id: past_date for worker in workers}
+    job_count = {worker.worker_id: {job: 0 for job in jobs} for worker in workers}
 
     total_days = sum((datetime.strptime(period['end'], "%d/%m/%Y") - datetime.strptime(period['start'], "%d/%m/%Y")).days + 1 for period in work_periods)
     jobs_per_day = len(jobs)
@@ -61,15 +62,21 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                     available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set) and worker.worker_id not in daily_assigned_workers]
 
                     if not available_workers:
-                        print(f"No available workers for job {job} on {date_str}")
-                        continue
+                        # Fill remaining shifts with any available worker
+                        available_workers = [worker for worker in workers if job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
+                        if not available_workers:
+                            print(f"No available workers for job {job} on {date_str}")
+                            continue
 
-                    # Select the worker who has the maximum gap from their last shift
-                    worker = max(available_workers, key=lambda w: (date - last_shift_date[w.worker_id]).days)
-                    last_shift_date[worker.worker_id] = date
+                        worker = random.choice(available_workers)
+                    else:
+                        # Select the worker who has the least number of shifts for this job and has the maximum gap from their last shift
+                        worker = min(available_workers, key=lambda w: (job_count[w.worker_id][job], date - last_shift_date[w.worker_id]))
+                        last_shift_date[worker.worker_id] = date
 
                 schedule[job][date_str] = worker.worker_id
                 daily_assigned_workers.add(worker.worker_id)
+                job_count[worker.worker_id][job] += 1
 
                 if is_weekend_day:
                     weekend_tracker[worker.worker_id] += 1
@@ -79,4 +86,4 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 worker.shift_quota -= 1
 
     return schedule
-    
+
