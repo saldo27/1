@@ -19,7 +19,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         if last_date and (date - last_date).days < 3:
             return False
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-        if weekend_tracker[worker.worker_id] >= 4:  # No 4 consecutive weekends
+        if weekend_tracker[worker.worker_id] >= 3:  # No 3 consecutive weekends
             return False
     return True
 
@@ -61,7 +61,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         print(f"No available workers for job {job} on {date_str}")
                         continue
 
-                    worker = min(available_workers, key=lambda w: w.shift_quota)
+                    # Select the worker who has the maximum gap from their last shift
+                    worker = max(available_workers, key=lambda w: (date - last_shift_date.get(w.worker_id, date - timedelta(days=1000))).days)
 
                 schedule[job][date_str] = worker.worker_id
                 daily_assigned_workers.add(worker.worker_id)
