@@ -128,10 +128,12 @@ class MainWindow(QMainWindow):
         self.output_display.setText(output)
 
     def export_schedule(self):
+        print("Export schedule button clicked")  # Debugging statement
         schedule_text = self.output_display.toPlainText()
         export_to_ical(schedule_text)
 
     def generate_report(self):
+        print("Generate report button clicked")  # Debugging statement
         schedule_text = self.output_display.toPlainText()
         report = generate_worker_report(schedule_text)
         report_window = QTextEdit()
