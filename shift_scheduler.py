@@ -23,12 +23,20 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
     return True
 
+def calculate_shift_quota(workers, total_days):
+    total_percentage = sum(worker.work_percentage for worker in workers)
+    for worker in workers:
+        worker.shift_quota = (worker.work_percentage / total_percentage) * total_days
+
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
 
     weekend_tracker = {worker.worker_id: 0 for worker in workers}
     last_shift_date = {worker.worker_id: None for worker in workers}
+
+    total_days = sum((datetime.strptime(period['end'], "%d/%m/%Y") - datetime.strptime(period['start'], "%d/%m/%Y")).days + 1 for period in work_periods)
+    calculate_shift_quota(workers, total_days)
 
     for period in work_periods:
         start_date = datetime.strptime(period['start'], "%d/%m/%Y")
@@ -46,7 +54,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 if mandatory_workers:
                     worker = mandatory_workers[0]
                 else:
-                    available_workers = [worker for worker in workers if worker.work_percentage > 0 and job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
+                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
 
                     available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set)]
 
@@ -57,7 +65,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                     worker = random.choice(available_workers)
 
                 daily_schedule[job] = worker.worker_id
-                worker.work_percentage -= 1
+                worker.shift_quota -= 1
                 schedule[job][date_str] = daily_schedule
 
                 if is_weekend_day:
