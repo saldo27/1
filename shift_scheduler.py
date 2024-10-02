@@ -23,20 +23,23 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
     return True
 
-def calculate_shift_quota(workers, total_days):
+def calculate_shift_quota(workers, total_shifts):
     total_percentage = sum(worker.work_percentage for worker in workers)
     for worker in workers:
-        worker.shift_quota = (worker.work_percentage / total_percentage) * total_days
+        worker.shift_quota = (worker.work_percentage / total_percentage) * total_shifts
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
 
     weekend_tracker = {worker.worker_id: 0 for worker in workers}
-    last_shift_date = {worker.worker_id: None for worker in workers}
+    past_date = datetime.strptime("01/01/1900", "%d/%m/%Y")
+    last_shift_date = {worker.worker_id: past_date for worker in workers}
 
     total_days = sum((datetime.strptime(period['end'], "%d/%m/%Y") - datetime.strptime(period['start'], "%d/%m/%Y")).days + 1 for period in work_periods)
-    calculate_shift_quota(workers, total_days)
+    jobs_per_day = len(jobs)
+    total_shifts = total_days * jobs_per_day
+    calculate_shift_quota(workers, total_shifts)
 
     for period in work_periods:
         start_date = datetime.strptime(period['start'], "%d/%m/%Y")
@@ -62,17 +65,18 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         continue
 
                     # Select the worker who has the maximum gap from their last shift
-                    worker = max(available_workers, key=lambda w: (date - last_shift_date.get(w.worker_id, date - timedelta(days=1000))).days)
+                    worker = max(available_workers, key=lambda w: (date - last_shift_date[w.worker_id]).days)
+                    last_shift_date[worker.worker_id] = date
 
                 schedule[job][date_str] = worker.worker_id
                 daily_assigned_workers.add(worker.worker_id)
 
                 if is_weekend_day:
                     weekend_tracker[worker.worker_id] += 1
-                last_shift_date[worker.worker_id] = date
 
             for worker_id in daily_assigned_workers:
                 worker = next(w for w in workers if w.worker_id == worker_id)
                 worker.shift_quota -= 1
 
     return schedule
+    
