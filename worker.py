@@ -13,7 +13,8 @@ class Worker:
     def from_user_input():
         worker_id = input("Enter worker ID: ")
         work_periods = input("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'): ").split(',')
-        work_percentage = int(input("Enter work percentage: "))
+        work_percentage_input = input("Enter work percentage (leave blank for default 100): ")
+        work_percentage = int(work_percentage_input) if work_percentage_input else 100
         group_input = input("Enter group (leave blank for default 0): ")
         group = int(group_input) if group_input else 0
         job_incompatibilities = input("Enter job incompatibilities (comma-separated, e.g., 'A,B'): ").split(',')
