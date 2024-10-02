@@ -45,6 +45,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             date_str = date.strftime("%d/%m/%Y")
             is_weekend_day = is_weekend(date) or is_holiday(date_str, holidays_set)
 
+            daily_assigned_workers = set()
             for job in jobs:
                 if date_str not in schedule[job]:
                     schedule[job][date_str] = {}
@@ -54,19 +55,23 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                     worker = mandatory_workers[0]
                 else:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
-                    available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set)]
+                    available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set) and worker.worker_id not in daily_assigned_workers]
 
                     if not available_workers:
                         print(f"No available workers for job {job} on {date_str}")
                         continue
 
-                    worker = random.choice(available_workers)
+                    worker = min(available_workers, key=lambda w: w.shift_quota)
 
                 schedule[job][date_str] = worker.worker_id
-                worker.shift_quota -= 1
+                daily_assigned_workers.add(worker.worker_id)
 
                 if is_weekend_day:
                     weekend_tracker[worker.worker_id] += 1
                 last_shift_date[worker.worker_id] = date
+
+            for worker_id in daily_assigned_workers:
+                worker = next(w for w in workers if w.worker_id == worker_id)
+                worker.shift_quota -= 1
 
     return schedule
