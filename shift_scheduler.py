@@ -37,14 +37,14 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     last_shift_date = {worker.worker_id: past_date for worker in workers}
     job_count = {worker.worker_id: {job: 0 for job in jobs} for worker in workers}
 
-    total_days = sum((datetime.strptime(period['end'], "%d/%m/%Y") - datetime.strptime(period['start'], "%d/%m/%Y")).days + 1 for period in work_periods)
+    total_days = sum((datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y") - datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")).days + 1 for period in work_periods)
     jobs_per_day = len(jobs)
     total_shifts = total_days * jobs_per_day
     calculate_shift_quota(workers, total_shifts)
 
     for period in work_periods:
-        start_date = datetime.strptime(period['start'], "%d/%m/%Y")
-        end_date = datetime.strptime(period['end'], "%d/%m/%Y")
+        start_date = datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")
+        end_date = datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y")
         for date in generate_date_range(start_date, end_date):
             date_str = date.strftime("%d/%m/%Y")
             is_weekend_day = is_weekend(date) or is_holiday(date_str, holidays_set)
@@ -88,3 +88,4 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 worker.shift_quota -= 1
 
     return schedule
+
