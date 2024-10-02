@@ -13,6 +13,16 @@ def is_weekend(date):
 def is_holiday(date_str, holidays):
     return date_str in holidays
 
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set):
+    if worker.worker_id in last_shift_date:
+        last_date = last_shift_date[worker.worker_id]
+        if last_date and (date - last_date).days < 3:
+            return False
+    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+        if weekend_tracker[worker.worker_id] >= 3:
+            return False
+    return True
+
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
@@ -38,10 +48,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 else:
                     available_workers = [worker for worker in workers if worker.work_percentage > 0 and job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
 
-                    if is_weekend_day:
-                        available_workers = [worker for worker in available_workers if weekend_tracker[worker.worker_id] < 3]
-                        
-                    available_workers = [worker for worker in available_workers if not last_shift_date[worker.worker_id] or (date - last_shift_date[worker.worker_id]).days >= 3]
+                    available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set)]
 
                     if not available_workers:
                         print(f"No available workers for job {job} on {date_str}")
