@@ -54,10 +54,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 if date_str not in schedule[job]:
                     schedule[job][date_str] = {}
 
+                # Assign mandatory workers first
                 mandatory_workers = [worker for worker in workers if date_str in worker.mandatory_shifts and job not in worker.job_incompatibilities]
                 if mandatory_workers:
                     worker = mandatory_workers[0]
                 else:
+                    # Filter out unavailable shifts
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and job not in worker.job_incompatibilities and date_str not in worker.unavailable_shifts]
                     available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set) and worker.worker_id not in daily_assigned_workers]
 
@@ -86,4 +88,4 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 worker.shift_quota -= 1
 
     return schedule
-
+    
