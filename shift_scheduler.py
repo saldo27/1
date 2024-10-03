@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import random
 from collections import defaultdict
 from icalendar import Calendar, Event
+import heapq
 
 def generate_date_range(start_date, end_date):
     current_date = start_date
@@ -51,6 +52,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     total_weeks = (total_days // 7) + 1
     calculate_shift_quota(workers, total_shifts, total_weeks)
 
+    # Initialize priority queue for workers
+    pq = [(datetime.strptime("01/01/1900", "%d/%m/%Y"), worker) for worker in workers]
+    heapq.heapify(pq)
+
     for period in work_periods:
         start_date = datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")
         end_date = datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y")
@@ -97,6 +102,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 worker = next(w for w in workers if w.identification == worker_id)
                 worker.shift_quota -= 1
 
+                # Update priority queue with the next available date for the worker
+                heapq.heappush(pq, (date + timedelta(days=3), worker))
+
     return schedule
 
 def export_to_ical(schedule_text):
@@ -140,4 +148,3 @@ def generate_worker_report(schedule_text):
         report += "\n"
 
     return report
-    
