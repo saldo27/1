@@ -140,3 +140,4 @@ def generate_worker_report(schedule_text):
         report += "\n"
 
     return report
+    
