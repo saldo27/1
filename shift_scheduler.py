@@ -24,6 +24,31 @@ from collections import defaultdict
 from icalendar import Calendar, Event
 import heapq
 
+class Worker:
+    def __init__(self, identification, percentage_shifts=0, mandatory_guard_duty=None, position_incompatibility=None, unavailable_dates=None):
+        self.identification = identification
+        self.percentage_shifts = percentage_shifts
+        self.mandatory_guard_duty = mandatory_guard_duty or []
+        self.position_incompatibility = position_incompatibility or []
+        self.unavailable_dates = unavailable_dates or []
+        self.shift_quota = 0
+        self.weekly_shift_quota = 0
+    
+    def __lt__(self, other):
+        return (self.shift_quota, self.identification) < (other.shift_quota, other.identification)
+
+    def __le__(self, other):
+        return (self.shift_quota, self.identification) <= (other.shift_quota, other.identification)
+
+    def __eq__(self, other):
+        return (self.shift_quota, self.identification) == (other.shift_quota, other.identification)
+
+def calculate_shift_quota(workers, total_shifts, total_weeks):
+    total_percentage = sum(worker.percentage_shifts for worker in workers)
+    for worker in workers:
+        worker.shift_quota = (worker.percentage_shifts / total_percentage) * total_shifts
+        worker.weekly_shift_quota = worker.shift_quota / total_weeks
+
 # Other function definitions...
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
@@ -40,7 +65,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     if weekly_tracker[worker.identification][week_number] >= worker.weekly_shift_quota:
         return False
     
-    # New conditions
     if job in job_count[worker.identification] and job_count[worker.identification][job] > 0:
         return False
     if date.weekday() == last_date.weekday():
@@ -101,6 +125,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 worker.shift_quota -= 1
                 heapq.heappush(pq, (date + timedelta(days=3), worker))
     return schedule
+
 def export_to_ical(schedule_text):
     cal = Calendar()
     cal.add('prodid', '-//Shift Scheduler//')
