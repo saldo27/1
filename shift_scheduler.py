@@ -81,14 +81,16 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 else:
                     # Select the worker who has the least number of shifts for this job and has the maximum gap from their last shift
                     worker = min(available_workers, key=lambda w: (job_count[w.worker_id][job], date - last_shift_date[w.worker_id]))
-                    last_shift_date[worker.worker_id] = date
 
-            schedule[job][date_str] = worker.worker_id
-            daily_assigned_workers.add(worker.worker_id)
-            job_count[worker.worker_id][job] += 1
+            if (date - last_shift_date[worker.worker_id]).days >= 3:
+                schedule[job][date_str] = worker.worker_id
+                daily_assigned_workers.add(worker.worker_id)
+                job_count[worker.worker_id][job] += 1
 
-            if is_weekend_day:
-                weekend_tracker[worker.worker_id] += 1
+                if is_weekend_day:
+                    weekend_tracker[worker.worker_id] += 1
+
+                last_shift_date[worker.worker_id] = date
 
         for worker_id in daily_assigned_workers:
             worker = next(w for w in workers if w.worker_id == worker_id)
