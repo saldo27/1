@@ -1,9 +1,3 @@
-from datetime import datetime, timedelta
-import random
-from collections import defaultdict
-from icalendar import Calendar, Event
-import heapq
-
 class Worker:
     def __init__(self, identification, percentage_shifts=0, mandatory_guard_duty=None, position_incompatibility=None, unavailable_dates=None):
         self.identification = identification
@@ -23,6 +17,13 @@ class Worker:
 
     def __eq__(self, other):
         return self.shift_quota == other.shift_quota
+
+from datetime import datetime, timedelta
+import random
+from collections import defaultdict
+from icalendar import Calendar, Event
+import heapq
+
 def generate_date_range(start_date, end_date):
     current_date = start_date
     while current_date <= end_date:
