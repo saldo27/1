@@ -10,13 +10,13 @@ class Worker:
     
     def __lt__(self, other):
         # Customize comparison based on your specific requirements
-        return self.shift_quota < other.shift_quota
+        return (self.shift_quota, self.identification) < (other.shift_quota, other.identification)
 
     def __le__(self, other):
-        return self.shift_quota <= other.shift_quota
+        return (self.shift_quota, self.identification) <= (other.shift_quota, other.identification)
 
     def __eq__(self, other):
-        return self.shift_quota == other.shift_quota
+        return (self.shift_quota, self.identification) == (other.shift_quota, other.identification)
 
 from datetime import datetime, timedelta
 import random
