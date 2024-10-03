@@ -11,6 +11,17 @@ class Worker:
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
         self.mandatory_guard_duty = mandatory_guard_duty if mandatory_guard_duty else []
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
+        self.shift_quota = 0
+        self.weekly_shift_quota = 0
+    
+    def __lt__(self, other):
+        return (self.shift_quota, self.identification) < (other.shift_quota, other.identification)
+
+    def __le__(self, other):
+        return (self.shift_quota, self.identification) <= (other.shift_quota, other.identification)
+
+    def __eq__(self, other):
+        return (self.shift_quota, self.identification) == (other.shift_quota, other.identification)
 
     @staticmethod
     def from_user_input(identification, working_dates, percentage_shifts, group, position_incompatibility,
