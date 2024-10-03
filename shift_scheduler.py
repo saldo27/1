@@ -102,7 +102,7 @@ def export_to_ical(schedule_text):
             date_str, worker_id = line.strip().split(': ')
             date = datetime.strptime(date_str, "%d/%m/%Y")
             event = Event()
-            event.add('summary', f"{job} shift")
+            event.add('summary', f"{job} shift & {worker_id}")
             event.add('dtstart', date)
             event.add('dtend', date + timedelta(days=1))
             event.add('description', f"Worker ID: {worker_id}")
