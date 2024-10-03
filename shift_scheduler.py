@@ -4,6 +4,25 @@ from collections import defaultdict
 from icalendar import Calendar, Event
 import heapq
 
+class Worker:
+    def __init__(self, identification, percentage_shifts=0, mandatory_guard_duty=None, position_incompatibility=None, unavailable_dates=None):
+        self.identification = identification
+        self.percentage_shifts = percentage_shifts
+        self.mandatory_guard_duty = mandatory_guard_duty or []
+        self.position_incompatibility = position_incompatibility or []
+        self.unavailable_dates = unavailable_dates or []
+        self.shift_quota = 0
+        self.weekly_shift_quota = 0
+    
+    def __lt__(self, other):
+        # Customize comparison based on your specific requirements
+        return self.shift_quota < other.shift_quota
+
+    def __le__(self, other):
+        return self.shift_quota <= other.shift_quota
+
+    def __eq__(self, other):
+        return self.shift_quota == other.shift_quota
 def generate_date_range(start_date, end_date):
     current_date = start_date
     while current_date <= end_date:
