@@ -17,6 +17,7 @@ class Worker:
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
+        self.has_exception = False  # Track if the worker has an accepted exception
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
@@ -58,10 +59,19 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
 
     return True
 
-def propose_exception(worker, date, reason):
+def propose_exception(worker, date, reason, last_shift_date):
+    if (date - last_shift_date[worker.identification]).days < 2:
+        logging.info(f"Cannot propose exception for Worker {worker.identification} on {date} as they have worked in the last 2 days.")
+        return False
+    if worker.has_exception:
+        logging.info(f"Worker {worker.identification} already has an accepted exception and cannot be proposed for another.")
+        return False
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
     confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
-    return confirmation.lower() == 'yes'
+    if confirmation.lower() == 'yes':
+        worker.has_exception = True
+        return True
+    return False
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
@@ -98,7 +108,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
                         if available_workers:
                             worker = available_workers[0]
-                            if propose_exception(worker, date, "override constraints"):
+                            if propose_exception(worker, date, "override constraints", last_shift_date):
                                 assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                             else:
                                 alternative_worker = find_alternative_worker(date, job, workers, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job_count)
