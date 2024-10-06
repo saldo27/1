@@ -9,7 +9,7 @@ class Worker:
     def __init__(self, id, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
         self.id = id
         self.work_dates = work_dates
-        self.percentage = percentage if percentage != "" else 100.0
+        self.percentage_shifts = float(percentage) if percentage else 100.0
         self.group = group
         self.incompatible_job = incompatible_job
         self.group_incompatibility = group_incompatibility
