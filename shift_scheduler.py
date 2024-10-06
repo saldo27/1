@@ -53,45 +53,25 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
 
     return True
     
-def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
-    schedule = {job: {} for job in jobs}
-    holidays_set = set(holidays)
-    weekend_tracker = {worker.identification: 0 for worker in workers}
-    past_date = datetime.strptime("01/01/1900", "%d/%m/%Y")
-    last_shift_date = {worker.identification: past_date for worker in workers}
-    job_count = {worker.identification: {job: 0 for job in jobs} for worker in workers}
-    weekly_tracker = defaultdict(lambda: defaultdict(int))
-    total_days = sum((datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y") - datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")).days + 1 for period in work_periods)
-    jobs_per_day = len(jobs)
-    total_shifts = total_days * jobs_per_day
-    total_weeks = (total_days // 7) + 1
-    calculate_shift_quota(workers, total_shifts, total_weeks)
+from PyQt5.QtWidgets import QMainWindow, QApplication
+import sys
 
-    pq = [(datetime.strptime("01/01/1900", "%d/%m/%Y"), worker) for worker in workers]
-    heapq.heapify(pq)
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        
+    def initUI(self):
+        self.setGeometry(100, 100, 800, 600)  # Set a default geometry within allowable limits
+        self.setMinimumSize(800, 600)         # Set minimum size
+        self.setMaximumSize(1920, 1080)       # Set maximum size (optional)
+        self.setWindowTitle('MainWindowClassWindow')
+        self.show()
 
-    for period in work_periods:
-        start_date = datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")
-        end_date = datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y")
-        for date in generate_date_range(start_date, end_date):
-            daily_assigned_workers = set()
-            for job in jobs:
-                available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
-                if available_workers:
-                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], date - last_shift_date[w.identification]))
-                    last_shift_date[worker.identification] = date
-                    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
-                    daily_assigned_workers.add(worker.identification)
-                    job_count[worker.identification][job] += 1
-                    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-                    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-                        weekend_tracker[worker.identification] += 1
-                    worker.shift_quota -= 1
-                    heapq.heappush(pq, (date + timedelta(days=3), worker))
-                else:
-                    print(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}")
-
-    return schedule
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    mainWin = MainWindow()
+    sys.exit(app.exec_())
 
 def export_to_ical(schedule_text):
     cal = Calendar()
