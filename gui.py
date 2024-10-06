@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
             self.worker_layout.addWidget(QLabel("Group Incompatibility (comma-separated):"), i, 10)
             self.worker_layout.addWidget(group_incompatibility_input, i, 11)
             self.worker_layout.addWidget(QLabel("Obligatory coverage (comma-separated dates):"), i, 12)
-            self.worker_layout.addWidget(mandatory_guard_duty_input, i, 13)
+            self.worker_layout.addWidget(obligatory_coverage_input, i, 13)
             self.worker_layout.addWidget(QLabel("Unavailable Dates (comma-separated dates):"), i, 14)
             self.worker_layout.addWidget(unavailable_dates_input, i, 15)
 
