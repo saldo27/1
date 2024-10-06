@@ -60,9 +60,12 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     return True
 
 def propose_exception(worker, date, reason, last_shift_date):
-    if (date - last_shift_date[worker.identification]).days < 2:
-        logging.info(f"Cannot propose exception for Worker {worker.identification} on {date} as they have worked in the last 2 days.")
-        return False
+    # Check if the worker has worked on the 2 days before or the 2 days after
+    for offset in [-2, -1, 1, 2]:
+        check_date = date + timedelta(days=offset)
+        if last_shift_date[worker.identification] == check_date:
+            logging.info(f"Cannot propose exception for Worker {worker.identification} on {date} as they have worked on {check_date}.")
+            return False
     if worker.has_exception:
         logging.info(f"Worker {worker.identification} already has an accepted exception and cannot be proposed for another.")
         return False
