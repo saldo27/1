@@ -42,10 +42,10 @@ def is_holiday(date_str, holidays_set):
 def sanitize_date(date_str):
     return re.sub(r'[^0-9/]', '', date_str).strip()
 
-def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, monthly_tracker, override=False):
     if isinstance(date, str) and date:
         date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")
-    
+
     if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
@@ -142,10 +142,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                                 assigned = True
                             else:
                                 logging.info(f"Shift allocation stopped for {job} on {date_str}. Awaiting confirmation for proposed exception.")
-                                break
+                                assigned = True  # Exit the loop as no shift can be assigned without exception approval
                         else:
                             logging.error(f"No available workers for job {job} on {date_str}.")
-                            assigned = True  # To exit the while loop
+                            assigned = True  # Exit the loop as no workers are available
                     else:
                         worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker)
