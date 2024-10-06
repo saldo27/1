@@ -113,15 +113,15 @@ class MainWindow(QMainWindow):
         previous_shifts_input = self.previous_shifts_input.text().split(',')
         # Create workers list from user input
         workers = [
-            Worker.from_user_input(
+            Worker(
                 input['identification'].text(),
-                input['working_dates'].text(),
-                int(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
+                input['working_dates'].text().split(','),  # Assuming working_dates is a list of date ranges
+                float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
                 int(input['group'].text() or 0),
-                input['position_incompatibility'].text(),
-                input['group_incompatibility'].text(),
-                input['mandatory_guard_duty'].text(),
-                input['unavailable_dates'].text()
+                input['position_incompatibility'].text().split(','),  # Assuming it's a list of incompatible jobs
+                input['group_incompatibility'].text().split(','),  # Assuming it's a list of incompatible groups
+                input['mandatory_guard_duty'].text().split(','),  # Assuming it's a list of dates
+                input['unavailable_dates'].text().split(',')  # day_off attribute
             )
             for input in self.worker_inputs
         ]
