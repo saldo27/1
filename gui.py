@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
             Worker.from_user_input(
                 input['identification'].text(),
                 input['working_dates'].text(),
-                int(input['percentage_shifts'].text() or 0),
+                int(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
                 int(input['group'].text() or 0),
                 input['position_incompatibility'].text(),
                 input['group_incompatibility'].text(),
