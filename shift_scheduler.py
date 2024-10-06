@@ -52,7 +52,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         return False
 
     return True
-
+    
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
