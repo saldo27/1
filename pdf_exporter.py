@@ -25,21 +25,25 @@ class PDFCalendar(FPDF):
         self.set_font('Arial', '', 10)
 
         for week in month_days:
+            max_height = 20  # Start with a base cell height
+            cells = []
             for day in week:
                 if day == 0:
-                    self.cell(25, 20, '', 1, 0, 'C')
+                    cells.append('')
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
-                    # Adjust font size to fit content
-                    self.set_font_size(8)
-                    y_before = self.get_y()
-                    self.multi_cell(25, 20, cell_content, border=1, align='C')
-                    self.set_y(y_before)  # Reset y position to start of the cell
-                    self.set_x(self.get_x() + 25)  # Move to the next cell
-                    self.set_font_size(10)  # Reset font size
-            self.ln()
+                    cells.append(cell_content)
+                    # Calculate the required height for the cell based on the number of lines
+                    num_lines = len(cell_content.split('\n'))
+                    cell_height = 5 * num_lines  # Approximate height based on number of lines
+                    if cell_height > max_height:
+                        max_height = cell_height
+
+            for cell_content in cells:
+                self.multi_cell(25, max_height, cell_content, border=1, align='C', ln=3, max_line_height=self.font_size)
+            self.ln(max_height)
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
