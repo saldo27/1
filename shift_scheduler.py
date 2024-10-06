@@ -74,37 +74,23 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
         start_date = datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")
         end_date = datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y")
         for date in generate_date_range(start_date, end_date):
-            date_str = date.strftime("%d/%m/%Y")
-            is_weekend_day = is_weekend(date) or is_holiday(date_str, holidays_set)
             daily_assigned_workers = set()
             for job in jobs:
-                if date_str not in schedule[job]:
-                    schedule[job][date_str] = {}
-                mandatory_workers = [worker for worker in workers if date_str in worker.mandatory_guard_duty and job not in worker.position_incompatibility]
-                if mandatory_workers:
-                    worker = mandatory_workers[0]
+                available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
+                if available_workers:
+                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], date - last_shift_date[w.identification]))
+                    last_shift_date[worker.identification] = date
+                    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
+                    daily_assigned_workers.add(worker.identification)
+                    job_count[worker.identification][job] += 1
+                    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
+                    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+                        weekend_tracker[worker.identification] += 1
+                    worker.shift_quota -= 1
+                    heapq.heappush(pq, (date + timedelta(days=3), worker))
                 else:
-                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and job not in worker.position_incompatibility and date_str not in worker.unavailable_dates]
-                    available_workers = [worker for worker in available_workers if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count) and worker.identification not in daily_assigned_workers]
-                    if not available_workers:
-                        available_workers = [worker for worker in workers if job not in worker.position_incompatibility and date_str not in worker.unavailable_dates]
-                        if not available_workers:
-                            print(f"No available workers for job {job} on {date_str}")
-                            continue
-                        worker = random.choice(available_workers)
-                    else:
-                        worker = min(available_workers, key=lambda w: (job_count[w.identification][job], date - last_shift_date[w.identification]))
-                        last_shift_date[worker.identification] = date
-                schedule[job][date_str] = worker.identification
-                daily_assigned_workers.add(worker.identification)
-                job_count[worker.identification][job] += 1
-                weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-                if is_weekend_day:
-                    weekend_tracker[worker.identification] += 1
-            for worker_id in daily_assigned_workers:
-                worker = next(w for w in workers if w.identification == worker_id)
-                worker.shift_quota -= 1
-                heapq.heappush(pq, (date + timedelta(days=3), worker))
+                    print(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}")
+
     return schedule
 
 def export_to_ical(schedule_text):
