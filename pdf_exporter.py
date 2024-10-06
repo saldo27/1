@@ -32,7 +32,7 @@ class PDFCalendar(FPDF):
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
-                    self.cell(25, 20, cell_content, 1, 'C')
+                    self.cell(25, 20, cell_content, 1, 0)  # Changed 'ln' to 0 here
             self.ln()
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
