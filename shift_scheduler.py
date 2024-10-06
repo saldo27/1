@@ -60,7 +60,10 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
 
 def propose_exception(worker, date, reason):
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
-    return True
+    # Wait for user confirmation
+    # This is a placeholder for actual confirmation logic, e.g., a GUI dialog or a user input prompt
+    confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
+    return confirmation.lower() == 'yes'
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
@@ -100,7 +103,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                             if propose_exception(worker, date, "override constraints"):
                                 break
                             else:
-                                continue
+                                # Stop the allocation process until confirmation is received
+                                print(f"Shift allocation stopped for {job} on {date}. Awaiting confirmation for proposed exception.")
+                                return schedule
                         else:
                             logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
                             continue
