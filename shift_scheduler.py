@@ -67,7 +67,19 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     last_shift_date = {worker.identification: past_date for worker in workers}
     job_count = {worker.identification: {job: 0 for job in jobs} for worker in workers}
     weekly_tracker = defaultdict(lambda: defaultdict(int))
-    total_days = sum((datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y") - datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")).days + 1 for period in work_periods)
+    
+    # Validate work periods
+    valid_work_periods = []
+    for period in work_periods:
+        try:
+            start_date_str, end_date_str = period.split('-')
+            start_date = datetime.strptime(start_date_str.strip(), "%d/%m/%Y")
+            end_date = datetime.strptime(end_date_str.strip(), "%d/%m/%Y")
+            valid_work_periods.append((start_date, end_date))
+        except ValueError as e:
+            print(f"Invalid period '{period}': {e}")
+
+    total_days = sum((end_date - start_date).days + 1 for start_date, end_date in valid_work_periods)
     jobs_per_day = len(jobs)
     total_shifts = total_days * jobs_per_day
     total_weeks = (total_days // 7) + 1
@@ -76,9 +88,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     pq = [(datetime.strptime("01/01/1900", "%d/%m/%Y"), worker) for worker in workers]
     heapq.heapify(pq)
 
-    for period in work_periods:
-        start_date = datetime.strptime(period.split('-')[0].strip(), "%d/%m/%Y")
-        end_date = datetime.strptime(period.split('-')[1].strip(), "%d/%m/%Y")
+    for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             daily_assigned_workers = set()
             for job in jobs:
