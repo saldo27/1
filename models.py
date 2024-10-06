@@ -8,6 +8,7 @@ class Worker:
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
+        self.has_exception = False  # Add this line to track exceptions
 
 class Shift:
     def __init__(self, date, job, worker_id):
