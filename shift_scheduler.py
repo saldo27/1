@@ -65,7 +65,7 @@ def propose_exception(worker, date, reason):
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
-    holidays_set = set(holidays)
+    holidays_set = set(holidays) if holidays else set()
     weekend_tracker = {worker.identification: 0 for worker in workers}
     past_date = datetime.strptime("01/01/1900", "%d/%m/%Y")
     last_shift_date = {worker.identification: past_date for worker in workers}
@@ -99,12 +99,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         if available_workers:
                             worker = available_workers[0]
                             if propose_exception(worker, date, "override constraints"):
-                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count)
+                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                             else:
                                 alternative_worker = find_alternative_worker(date, job, workers, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job_count)
                                 if alternative_worker:
                                     logging.info(f"Alternative worker {alternative_worker.identification} assigned for job {job} on {date}.")
-                                    assign_worker_to_shift(alternative_worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count)
+                                    assign_worker_to_shift(alternative_worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                                 else:
                                     logging.error(f"No alternative workers available for job {job} on {date.strftime('%d/%m/%Y')}.")
                                     return schedule
@@ -113,7 +113,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                             continue
                     else:
                         worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count)
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                     assigned = True
 
     return schedule
@@ -124,7 +124,7 @@ def find_alternative_worker(date, job, workers, last_shift_date, weekend_tracker
             return worker
     return None
 
-def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count):
+def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
     last_shift_date[worker.identification] = date
     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
     job_count[worker.identification][job] += 1
