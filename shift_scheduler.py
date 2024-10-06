@@ -4,7 +4,6 @@ from datetime import timedelta, datetime
 from collections import defaultdict
 from models import Shift
 from icalendar import Calendar, Event
-import heapq
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -18,7 +17,6 @@ class Worker:
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
-        self.monthly_shift_quota = 0  # Initialize monthly_shift_quota
 
 def calculate_shift_quota(workers, total_shifts, total_days):
     if total_days == 0 or total_shifts == 0:
@@ -26,12 +24,9 @@ def calculate_shift_quota(workers, total_shifts, total_days):
         return
 
     total_percentage = sum(worker.percentage_shifts for worker in workers)
-    total_months = max(total_days / 30, 1)  # Ensure total_months is at least 1
     for worker in workers:
-        monthly_shifts = (worker.percentage_shifts / total_percentage) * (total_shifts / total_months)
-        worker.monthly_shift_quota = max(monthly_shifts, 0)
-        worker.shift_quota = max((worker.percentage_shifts / total_percentage) * (total_days * total_shifts), 0)
-        worker.weekly_shift_quota = max(worker.shift_quota / total_days * 7, 0)
+        worker.shift_quota = max((worker.percentage_shifts / total_percentage) * total_shifts, 0)
+        worker.weekly_shift_quota = max(worker.shift_quota / (total_days / 7), 0)
 
 def generate_date_range(start_date, end_date):
     for n in range(int((end_date - start_date).days) + 1):
@@ -50,7 +45,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     if isinstance(date, str) and date:
         date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")
 
-    if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
+    if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.work_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
@@ -82,11 +77,26 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
 
     return True
-    
-def propose_exception(worker, date, reason):
-    logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
-    confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
-    return confirmation.lower() == 'yes'
+
+def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
+    logging.debug(f"Assigning worker {worker.identification} to job {job} on date {date.strftime('%d/%m/%Y')}")
+
+    last_shift_date[worker.identification] = date
+    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
+    job_count[worker.identification][job] += 1
+    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
+
+    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+        weekend_tracker[worker.identification] += 1
+
+    if worker.shift_quota > 0:
+        worker.shift_quota -= 1
+
+    logging.debug(f"Updated last_shift_date: {last_shift_date}")
+    logging.debug(f"Updated job_count: {job_count}")
+    logging.debug(f"Updated weekly_tracker: {weekly_tracker}")
+    logging.debug(f"Updated weekend_tracker: {weekend_tracker}")
+    logging.debug(f"Worker {worker.identification} shift_quota: {worker.shift_quota}")
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
@@ -132,49 +142,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             for job in jobs:
                 logging.debug(f"Processing job '{job}' on date {date_str}")
 
-                assigned = False
-                while not assigned:
-                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
-                    if not available_workers:
-                        # Consider override workers if no regular workers are available
-                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
-                        if available_workers:
-                            worker = available_workers[0]
-                            if propose_exception(worker, date_str, "override constraints"):
-                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                                assigned = True
-                            else:
-                                logging.info(f"Shift allocation stopped for {job} on {date_str}. Awaiting confirmation for proposed exception.")
-                                assigned = True  # Exit the loop as no shift can be assigned without exception approval
-                        else:
-                            logging.error(f"No available workers for job {job} on {date_str}.")
-                            assigned = True  # Exit the loop as no workers are available
-                    else:
-                        for worker in available_workers:
-                            assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                        assigned = True
+                available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
+
+                for worker in available_workers:
+                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
     return schedule
-    
-def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
-    logging.debug(f"Assigning worker {worker.identification} to job {job} on date {date.strftime('%d/%m/%Y')}")
-    
-    last_shift_date[worker.identification] = date
-    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
-    job_count[worker.identification][job] += 1
-    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-    
-    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-        weekend_tracker[worker.identification] += 1
-
-    if worker.shift_quota > 0:
-        worker.shift_quota -= 1
-    if worker.monthly_shift_quota > 0:
-        worker.monthly_shift_quota -= 1
-    
-    logging.debug(f"Updated last_shift_date: {last_shift_date}")
-    logging.debug(f"Updated job_count: {job_count}")
-    logging.debug(f"Updated weekly_tracker: {weekly_tracker}")
-    logging.debug(f"Updated weekend_tracker: {weekend_tracker}")
-    logging.debug(f"Worker {worker.identification} shift_quota: {worker.shift_quota}")
-    logging.debug(f"Worker {worker.identification} monthly_shift_quota: {worker.monthly_shift_quota}")
