@@ -6,23 +6,15 @@ from icalendar import Calendar, Event
 import heapq
 
 class Worker:
-    def __init__(self, identification, percentage_shifts=0, mandatory_guard_duty=None, position_incompatibility=None, unavailable_dates=None):
-        self.identification = identification
-        self.percentage_shifts = percentage_shifts
-        self.mandatory_guard_duty = mandatory_guard_duty or []
-        self.position_incompatibility = position_incompatibility or []
-        self.unavailable_dates = unavailable_dates or []
-        self.shift_quota = 0
-        self.weekly_shift_quota = 0
-    
-    def __lt__(self, other):
-        return (self.shift_quota, self.identification) < (other.shift_quota, self.identification)
-
-    def __le__(self, other):
-        return (self.shift_quota, self.identification) <= (other.shift_quota, self.identification)
-
-    def __eq__(self, other):
-        return (self.shift_quota, self.identification) == (other.shift_quota, self.identification)
+    def __init__(self, id, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
+        self.id = id
+        self.work_dates = work_dates
+        self.percentage = percentage if percentage != "" else 100.0
+        self.group = group
+        self.incompatible_job = incompatible_job
+        self.group_incompatibility = group_incompatibility
+        self.obligatory_coverage = obligatory_coverage
+        self.day_off = day_off
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
@@ -33,6 +25,12 @@ def calculate_shift_quota(workers, total_shifts, total_weeks):
 def generate_date_range(start_date, end_date):
     for n in range(int((end_date - start_date).days) + 1):
         yield start_date + timedelta(n)
+
+def is_weekend(date):
+    return date.weekday() >= 5  # 5 for Saturday and 6 for Sunday
+
+def is_holiday(date_str, holidays_set):
+    return date_str in holidays_set
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
     if worker.identification in last_shift_date:
