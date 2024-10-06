@@ -113,11 +113,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     # Assign obligatory coverage shifts first
     for worker in workers:
         for date_str in worker.obligatory_coverage:
-            date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Trim spaces here
-            for job in jobs:
-                if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
-                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                    break
+            if date_str.strip():  # Ensure non-empty strings
+                date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Trim spaces here
+                for job in jobs:
+                    if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                        break
 
     # Assign remaining shifts
     for start_date, end_date in valid_work_periods:
