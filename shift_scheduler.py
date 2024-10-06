@@ -154,14 +154,26 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     return schedule
 
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker):
+    logging.debug(f"Assigning worker {worker.identification} to job {job} on date {date.strftime('%d/%m/%Y')}")
+    
     last_shift_date[worker.identification] = date
     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
     job_count[worker.identification][job] += 1
     weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
     monthly_tracker[worker.identification][date.month] += 1
+    
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
         weekend_tracker[worker.identification] += 1
+    
     worker.shift_quota -= 1
     worker.monthly_shift_quota -= 1
+    
+    logging.debug(f"Updated last_shift_date: {last_shift_date}")
+    logging.debug(f"Updated job_count: {job_count}")
+    logging.debug(f"Updated weekly_tracker: {weekly_tracker}")
+    logging.debug(f"Updated monthly_tracker: {monthly_tracker}")
+    logging.debug(f"Updated weekend_tracker: {weekend_tracker}")
+    logging.debug(f"Worker {worker.identification} shift_quota: {worker.shift_quota}")
+    logging.debug(f"Worker {worker.identification} monthly_shift_quota: {worker.monthly_shift_quota}")
 
 
