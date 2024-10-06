@@ -148,7 +148,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
     return schedule
-
+    
 def find_alternative_worker(date, job, workers, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job_count):
     for worker in workers:
         if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True):
