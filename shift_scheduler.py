@@ -35,6 +35,9 @@ def is_weekend(date):
 def is_holiday(date_str, holidays_set):
     return date_str in holidays_set
 
+def sanitize_date(date_str):
+    return re.sub(r'[^0-9/]', '', date_str).strip()
+
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
     if isinstance(date, str) and date:  # Check if date is a non-empty string
         date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")  # Ensure date is a datetime object
@@ -87,9 +90,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Holidays: {holidays}")
     logging.debug(f"Jobs: {jobs}")
 
-    def sanitize_date(date_str):
-        return re.sub(r'[^0-9/]', '', date_str).strip()
-
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
     weekend_tracker = {worker.identification: 0 for worker in workers}
@@ -110,7 +110,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
 
     total_days = sum((end_date - start_date).days + 1 for start_date, end_date in valid_work_periods)
     jobs_per_day = len(jobs)
-    total_shifts = total_days * jobs_per_day
+    total_shifts = total_days * jobs_per day
     total_weeks = (total_days // 7) + 1
     calculate_shift_quota(workers, total_shifts, total_weeks)
 
