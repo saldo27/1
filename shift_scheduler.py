@@ -101,9 +101,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             for job in jobs:
                 # Assign mandatory guard duty shifts first
                 for worker in workers:
-                    if date.strftime("%d/%m/%Y") in worker.obligatory_coverage:
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                        break
+                    if date.strftime("%d/%m/%Y") in [d.strftime("%d/%m/%Y") for d in worker.obligatory_coverage]:
+                        if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
+                            assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                            break
                 else:
                     assigned = False
                     while not assigned:
@@ -122,13 +123,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                                 logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
                                 continue
                         worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                        last_shift_date[worker.identification] = date
-                        schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
-                        job_count[worker.identification][job] += 1
-                        weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-                        if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-                            weekend_tracker[worker.identification] += 1
-                        worker.shift_quota -= 1
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                         assigned = True
 
     return schedule
