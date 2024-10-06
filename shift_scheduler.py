@@ -44,6 +44,8 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     if not override:
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
+            if isinstance(last_date, str):  # Convert to datetime if it's a string
+                last_date = datetime.strptime(last_date, "%d/%m/%Y")
             if last_date:
                 # Ensure at least 4 days between shifts
                 if (date - last_date).days < 4:
