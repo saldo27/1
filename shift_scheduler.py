@@ -1,5 +1,5 @@
 import logging
-import re  # Ensure re is imported
+import re
 from datetime import timedelta, datetime
 from collections import defaultdict
 from models import Shift
@@ -16,7 +16,7 @@ class Worker:
         self.group = group
         self.incompatible_job = incompatible_job
         self.group_incompatibility = group_incompatibility
-        self.obligatory_coverage = obligatory_coverage  # Ensure this attribute is initialized
+        self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
@@ -39,24 +39,22 @@ def sanitize_date(date_str):
     return re.sub(r'[^0-9/]', '', date_str).strip()
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
-    if isinstance(date, str) and date:  # Check if date is a non-empty string
-        date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")  # Ensure date is a datetime object
+    if isinstance(date, str) and date:
+        date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")
     
-    if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.unavailable_dates if day]:  # Ensure non-empty strings
+    if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
     if not override:
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
-            if isinstance(last_date, str) and last_date:  # Ensure non-empty strings
+            if isinstance(last_date, str) and last_date:
                 last_date = datetime.strptime(sanitize_date(last_date), "%d/%m/%Y")
             if last_date:
-                # Ensure at least 4 days between shifts
                 if (date - last_date).days < 4:
                     logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
                     return False
-                # Ensure only 1 shift per day
                 if last_date.date() == date.date():
                     logging.debug(f"Worker {worker.identification} cannot work on {date} because they already have a shift on this day.")
                     return False
@@ -79,8 +77,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     
 def propose_exception(worker, date, reason):
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
-    # Wait for user confirmation
-    # This is a placeholder for actual confirmation logic, e.g., a GUI dialog or a user input prompt
     confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
     return confirmation.lower() == 'yes'
 
