@@ -77,7 +77,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
 
     return True
-
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
     logging.debug(f"Assigning worker {worker.identification} to job {job} on date {date.strftime('%d/%m/%Y')}")
 
@@ -154,3 +153,4 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         break  # Ensure only one worker is assigned per job per day
 
     return schedule
+
