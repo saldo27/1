@@ -101,7 +101,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             for job in jobs:
                 # Assign mandatory guard duty shifts first
                 for worker in workers:
-                    if date.strftime("%d/%m/%Y") in [d.strftime("%d/%m/%Y") for d in worker.obligatory_coverage]:
+                    if date in worker.obligatory_coverage:
                         if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
                             assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                             break
