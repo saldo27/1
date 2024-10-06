@@ -9,7 +9,7 @@ class Worker:
         self.group = group
         self.position_incompatibility = position_incompatibility if position_incompatibility else []
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
-        self.mandatory_guard_duty = mandatory_guard_duty if mandatory_guard_duty else []
+        self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
         self.shift_quota = 0
         self.weekly_shift_quota = 0
@@ -30,7 +30,7 @@ class Worker:
         working_dates = [datetime.strptime(date.strip(), "%d/%m/%Y-%d/%m/%Y") for date in working_dates.split(',') if date]
         position_incompatibility = position_incompatibility.split(',') if position_incompatibility else []
         group_incompatibility = group_incompatibility.split(',') if group_incompatibility else []
-        mandatory_guard_duty = [datetime.strptime(date.strip(), "%d/%m/%Y") for date in mandatory_guard_duty.split(',') if date]
+        obligatory_coverage = [datetime.strptime(date.strip(), "%d/%m/%Y") for date in obligatory_coverage.split(',') if date]
         unavailable_dates = [datetime.strptime(date.strip(), "%d/%m/%Y") for date in unavailable_dates.split(',') if date]
         return Worker(identification, working_dates, percentage_shifts, group, position_incompatibility,
-                      group_incompatibility, mandatory_guard_duty, unavailable_dates)
+                      group_incompatibility, obligatory_coverage, unavailable_dates)
