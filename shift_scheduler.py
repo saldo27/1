@@ -99,7 +99,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         if available_workers:
                             worker = available_workers[0]
                             if propose_exception(worker, date, "override constraints"):
-                                break
+                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count)
                             else:
                                 alternative_worker = find_alternative_worker(date, job, workers, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job_count)
                                 if alternative_worker:
@@ -111,14 +111,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         else:
                             logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
                             continue
-                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                    last_shift_date[worker.identification] = date
-                    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
-                    job_count[worker.identification][job] += 1
-                    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-                    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-                        weekend_tracker[worker.identification] += 1
-                    worker.shift_quota -= 1
+                    else:
+                        worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count)
                     assigned = True
 
     return schedule
