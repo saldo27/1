@@ -8,6 +8,7 @@ from PySide6.QtGui import QAction
 from worker import Worker
 from shift_scheduler import schedule_shifts
 from icalendar import Calendar, Event
+from pdf_exporter import export_schedule_to_pdf
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
@@ -156,21 +157,7 @@ class MainWindow(QMainWindow):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as PDF", "", "PDF Files (*.pdf);;All Files (*)", options=options)
         if filePath:
-            c = canvas.Canvas(filePath, pagesize=letter)
-            width, height = letter
-            y = height - 40
-            c.setFont("Helvetica", 12)
-            for job, shifts in self.schedule.items():
-                c.drawString(40, y, f"Job {job}:")
-                y -= 20
-                for date, worker in shifts.items():
-                    c.drawString(60, y, f"{date}: {worker}")
-                    y -= 20
-                y -= 20
-                if y < 40:
-                    c.showPage()
-                    y = height - 40
-            c.save()
+            export_schedule_to_pdf(self.schedule, filename=filePath)
 
 app = QApplication(sys.argv)
 window = MainWindow()
