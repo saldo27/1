@@ -160,4 +160,3 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
         weekend_tracker[worker.identification] += 1
     worker.shift_quota -= 1
     worker.monthly_shift_quota -= 1
-
