@@ -159,6 +159,7 @@ class MainWindow(QMainWindow):
         if filePath:
             export_schedule_to_pdf(self.schedule, filename=filePath)
 
+
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
