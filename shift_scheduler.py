@@ -50,18 +50,16 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         week_number = date.isocalendar()[1]
         if weekly_tracker[worker.identification][week_number] >= 2:
             logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
-            return False
+                return False
 
         if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:
             logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
-            return False
+                return False
 
     return True
 
 def propose_exception(worker, date, reason):
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
-    # Wait for user confirmation
-    # This is a placeholder for actual confirmation logic, e.g., a GUI dialog or a user input prompt
     confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
     return confirmation.lower() == 'yes'
 
@@ -103,7 +101,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                             if propose_exception(worker, date, "override constraints"):
                                 break
                             else:
-                                # Stop the allocation process until confirmation is received
                                 print(f"Shift allocation stopped for {job} on {date}. Awaiting confirmation for proposed exception.")
                                 return schedule
                         else:
