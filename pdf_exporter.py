@@ -7,32 +7,33 @@ class PDFCalendar(FPDF):
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, 'Shift Schedule Calendar', 0, 1, 'C')
 
-    def chapter_title(self, month, year):
+    def add_month(self, year, month, schedule):
+        self.add_page()
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f'{calendar.month_name[month]} {year}', 0, 1, 'C')
         self.ln(10)
 
-    def chapter_body(self, body):
-        self.set_font('Arial', '', 12)
-        self.multi_cell(0, 10, body)
+        # Create a table for the calendar
+        self.set_font('Arial', 'B', 10)
+        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        for day in days:
+            self.cell(25, 10, day, 1, 0, 'C')
         self.ln()
 
-    def add_month(self, year, month, schedule):
-        self.add_page()
-        self.chapter_title(month, year)
+        cal = calendar.Calendar(firstweekday=0)
+        month_days = cal.monthdayscalendar(year, month)
+        self.set_font('Arial', '', 10)
 
-        cal = calendar.monthcalendar(year, month)
-        body = ""
-        for week in cal:
+        for week in month_days:
             for day in week:
                 if day == 0:
-                    body += "    "
+                    self.cell(25, 20, '', 1, 0, 'C')
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
-                    shifts = [f"{job}: {worker}" for job, dates in schedule.items() if date_str in dates for date, worker in dates.items()]
-                    body += f"{day:2d} " + ("; ".join(shifts) if shifts else "No Shifts") + "    "
-            body += "\n"
-        self.chapter_body(body)
+                    shifts = [f"{job}: {worker}" for job, dates in schedule.items() if date_str in dates]
+                    cell_content = f"{day}\n" + "\n".join(shifts)
+                    self.multi_cell(25, 10, cell_content, 1, 'C')
+            self.ln()
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
