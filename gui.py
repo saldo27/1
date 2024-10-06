@@ -42,9 +42,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.jobs_input)
         layout.addWidget(QLabel("Enter number of workers:"))
         layout.addWidget(self.num_workers_input)
-        layout.addWidget(QLabel("Enter previous shifts if any (optional, leave blank if none):"))
-        layout.addWidget(self.previous_shifts_input)
-        
+                
         # Worker inputs layout
         self.worker_layout = QGridLayout()
         layout.addLayout(self.worker_layout)
@@ -73,7 +71,7 @@ class MainWindow(QMainWindow):
             group_input = QLineEdit()
             position_incompatibility_input = QLineEdit()
             group_incompatibility_input = QLineEdit()
-            mandatory_guard_duty_input = QLineEdit()
+            obligatory_coverage_input = QLineEdit()
             unavailable_dates_input = QLineEdit()
 
             self.worker_layout.addWidget(QLabel(f"Worker {i+1} Identification:"), i, 0)
@@ -88,7 +86,7 @@ class MainWindow(QMainWindow):
             self.worker_layout.addWidget(position_incompatibility_input, i, 9)
             self.worker_layout.addWidget(QLabel("Group Incompatibility (comma-separated):"), i, 10)
             self.worker_layout.addWidget(group_incompatibility_input, i, 11)
-            self.worker_layout.addWidget(QLabel("Mandatory Guard Duty (comma-separated dates):"), i, 12)
+            self.worker_layout.addWidget(QLabel("Obligatory coverage (comma-separated dates):"), i, 12)
             self.worker_layout.addWidget(mandatory_guard_duty_input, i, 13)
             self.worker_layout.addWidget(QLabel("Unavailable Dates (comma-separated dates):"), i, 14)
             self.worker_layout.addWidget(unavailable_dates_input, i, 15)
@@ -100,7 +98,7 @@ class MainWindow(QMainWindow):
                 'group': group_input,
                 'position_incompatibility': position_incompatibility_input,
                 'group_incompatibility': group_incompatibility_input,
-                'mandatory_guard_duty': mandatory_guard_duty_input,
+                'obligatory_coverage': obligatory_coverage_input,
                 'unavailable_dates': unavailable_dates_input
             })
 
@@ -120,7 +118,7 @@ class MainWindow(QMainWindow):
                 int(input['group'].text() or 0),
                 input['position_incompatibility'].text().split(','),  # Assuming it's a list of incompatible jobs
                 input['group_incompatibility'].text().split(','),  # Assuming it's a list of incompatible groups
-                input['mandatory_guard_duty'].text().split(','),  # Assuming it's a list of dates
+                input['obligatory_coverage'].text().split(','),  # Assuming it's a list of dates
                 input['unavailable_dates'].text().split(',')  # day_off attribute
             )
             for input in self.worker_inputs
