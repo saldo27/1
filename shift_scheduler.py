@@ -32,7 +32,6 @@ def calculate_shift_quota(workers, total_shifts, total_days):
         worker.monthly_shift_quota = max(monthly_shifts, 0)
         worker.shift_quota = max((worker.percentage_shifts / total_percentage) * (total_days * total_shifts), 0)
         worker.weekly_shift_quota = max(worker.shift_quota / total_days * 7, 0)
-
 def generate_date_range(start_date, end_date):
     for n in range(int((end_date - start_date).days) + 1):
         yield start_date + timedelta(n)
@@ -169,8 +168,8 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
         weekend_tracker[worker.identification] += 1
     
-    worker.shift_quota -= 1
-    worker.monthly_shift_quota -= 1
+    worker.shift_quota = max(worker.shift_quota - 1, 0)
+    worker.monthly_shift_quota = max(worker.monthly_shift_quota - 1, 0)
     
     logging.debug(f"Updated last_shift_date: {last_shift_date}")
     logging.debug(f"Updated job_count: {job_count}")
@@ -179,5 +178,3 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
     logging.debug(f"Updated weekend_tracker: {weekend_tracker}")
     logging.debug(f"Worker {worker.identification} shift_quota: {worker.shift_quota}")
     logging.debug(f"Worker {worker.identification} monthly_shift_quota: {worker.monthly_shift_quota}")
-
-
