@@ -46,7 +46,7 @@ def is_holiday(date_str, holidays_set):
 def sanitize_date(date_str):
     return re.sub(r'[^0-9/]', '', date_str).strip()
 
-def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, monthly_tracker, override=False):
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
     if isinstance(date, str) and date:
         date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")
 
@@ -101,7 +101,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     last_shift_date = {worker.identification: past_date for worker in workers}
     job_count = {worker.identification: {job: 0 for job in jobs} for worker in workers}
     weekly_tracker = defaultdict(lambda: defaultdict(int))
-    monthly_tracker = defaultdict(lambda: defaultdict(int))
 
     valid_work_periods = []
     for period in work_periods:
@@ -125,7 +124,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 date = datetime.strptime(sanitized_date_str, "%d/%m/%Y")
                 for job in jobs:
                     if worker.identification not in schedule[job].get(date.strftime("%d/%m/%Y"), ''):
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker)
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
@@ -135,14 +134,14 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
 
                 assigned = False
                 while not assigned:
-                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, monthly_tracker)]
+                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
                     if not available_workers:
                         # Consider override workers if no regular workers are available
-                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, monthly_tracker, override=True)]
+                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
                         if available_workers:
                             worker = available_workers[0]
                             if propose_exception(worker, date_str, "override constraints"):
-                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker)
+                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                                 assigned = True
                             else:
                                 logging.info(f"Shift allocation stopped for {job} on {date_str}. Awaiting confirmation for proposed exception.")
@@ -152,19 +151,18 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                             assigned = True  # Exit the loop as no workers are available
                     else:
                         worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker)
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                         assigned = True
 
     return schedule
 
-def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker):
+def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
     logging.debug(f"Assigning worker {worker.identification} to job {job} on date {date.strftime('%d/%m/%Y')}")
     
     last_shift_date[worker.identification] = date
     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
     job_count[worker.identification][job] += 1
     weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-    monthly_tracker[worker.identification][date.month] += 1
     
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
         weekend_tracker[worker.identification] += 1
@@ -177,7 +175,6 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
     logging.debug(f"Updated last_shift_date: {last_shift_date}")
     logging.debug(f"Updated job_count: {job_count}")
     logging.debug(f"Updated weekly_tracker: {weekly_tracker}")
-    logging.debug(f"Updated monthly_tracker: {monthly_tracker}")
     logging.debug(f"Updated weekend_tracker: {weekend_tracker}")
     logging.debug(f"Worker {worker.identification} shift_quota: {worker.shift_quota}")
     logging.debug(f"Worker {worker.identification} monthly_shift_quota: {worker.monthly_shift_quota}")
