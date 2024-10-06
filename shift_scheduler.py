@@ -35,7 +35,7 @@ def is_weekend(date):
 def is_holiday(date_str, holidays_set):
     return date_str in holidays_set
 
-def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False, schedule=None):
     if not override:
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
@@ -57,6 +57,16 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
             return False
 
+        # Constraint 1: A worker may never hold several jobs on the same day
+        if date.strftime("%d/%m/%Y") in schedule.get(job, {}):
+            logging.debug(f"Worker {worker.identification} cannot work on {date} as they are already assigned to a job on this day.")
+            return False
+
+        # Constraint 3: If the worker has a day-off, they cannot be assigned a shift
+        if date.strftime("%d/%m/%Y") in worker.day_off:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} as it is their day off.")
+            return False
+
     return True
 
 def propose_exception(worker, date, reason, last_shift_date):
@@ -68,6 +78,9 @@ def propose_exception(worker, date, reason, last_shift_date):
             return False
     if worker.has_exception:
         logging.info(f"Worker {worker.identification} already has an accepted exception and cannot be proposed for another.")
+        return False
+    if date.strftime("%d/%m/%Y") in worker.day_off:
+        logging.info(f"Worker {worker.identification} cannot have an exception on {date} as it is their day off.")
         return False
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
     confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
@@ -106,9 +119,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             for job in jobs:
                 assigned = False
                 while not assigned:
-                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
+                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, schedule=schedule)]
                     if not available_workers:
-                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
+                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True, schedule=schedule)]
                         if available_workers:
                             worker = available_workers[0]
                             if propose_exception(worker, date, "override constraints", last_shift_date):
@@ -128,6 +141,11 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                     assigned = True
+
+                # Constraint 2: Assign obligatory coverage shifts
+                for worker in workers:
+                    if date.strftime("%d/%m/%Y") in worker.obligatory_coverage and worker.shift_quota > 0:
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
     return schedule
 
