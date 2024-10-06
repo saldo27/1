@@ -16,7 +16,7 @@ class Worker:
         self.incompatible_job = incompatible_job
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
-        self.day_off = day_off
+        self.day_off = day_off  # Ensure this attribute is present
         self.has_exception = False  # Track if the worker has an accepted exception
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
