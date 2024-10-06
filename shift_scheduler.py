@@ -1,24 +1,5 @@
-class Worker:
-    def __init__(self, identification, percentage_shifts=0, mandatory_guard_duty=None, position_incompatibility=None, unavailable_dates=None):
-        self.identification = identification
-        self.percentage_shifts = percentage_shifts
-        self.mandatory_guard_duty = mandatory_guard_duty or []
-        self.position_incompatibility = position_incompatibility or []
-        self.unavailable_dates = unavailable_dates or []
-        self.shift_quota = 0
-        self.weekly_shift_quota = 0
-    
-    def __lt__(self, other):
-        # Customize comparison based on your specific requirements
-        return (self.shift_quota, self.identification) < (other.shift_quota, other.identification)
-
-    def __le__(self, other):
-        return (self.shift_quota, self.identification) <= (other.shift_quota, other.identification)
-
-    def __eq__(self, other):
-        return (self.shift_quota, self.identification) == (other.shift_quota, other.identification)
-
-from datetime import datetime, timedelta
+from models import Shift
+from datetime import timedelta, datetime
 import random
 from collections import defaultdict
 from icalendar import Calendar, Event
@@ -35,13 +16,13 @@ class Worker:
         self.weekly_shift_quota = 0
     
     def __lt__(self, other):
-        return (self.shift_quota, self.identification) < (other.shift_quota, other.identification)
+        return (self.shift_quota, self.identification) < (other.shift_quota, self.identification)
 
     def __le__(self, other):
-        return (self.shift_quota, self.identification) <= (other.shift_quota, other.identification)
+        return (self.shift_quota, self.identification) <= (other.shift_quota, self.identification)
 
     def __eq__(self, other):
-        return (self.shift_quota, self.identification) == (other.shift_quota, other.identification)
+        return (self.shift_quota, self.identification) == (other.shift_quota, self.identification)
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
@@ -49,7 +30,9 @@ def calculate_shift_quota(workers, total_shifts, total_weeks):
         worker.shift_quota = (worker.percentage_shifts / total_percentage) * total_shifts
         worker.weekly_shift_quota = worker.shift_quota / total_weeks
 
-# Other function definitions...
+def generate_date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days) + 1):
+        yield start_date + timedelta(n)
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
     if worker.identification in last_shift_date:
