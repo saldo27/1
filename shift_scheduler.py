@@ -8,7 +8,7 @@ import heapq
 logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
-    def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
+    def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, unavailable_dates):
         self.identification = identification
         self.work_dates = work_dates
         self.percentage_shifts = float(percentage) if percentage else 100.0
@@ -16,7 +16,7 @@ class Worker:
         self.incompatible_job = incompatible_job
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
-        self.day_off = day_off  # Ensure this attribute is present
+        self.unavailable_dates = unavailable_dates  # Ensure this attribute is present
         self.has_exception = False  # Track if the worker has an accepted exception
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
@@ -63,7 +63,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
 
         # Constraint 3: If the worker has a day-off, they cannot be assigned a shift
-        if date.strftime("%d/%m/%Y") in worker.day_off:
+        if date.strftime("%d/%m/%Y") in worker.unavailable_dates:
             logging.debug(f"Worker {worker.identification} cannot work on {date} as it is their day off.")
             return False
 
@@ -79,7 +79,7 @@ def propose_exception(worker, date, reason, last_shift_date):
     if worker.has_exception:
         logging.info(f"Worker {worker.identification} already has an accepted exception and cannot be proposed for another.")
         return False
-    if date.strftime("%d/%m/%Y") in worker.day_off:
+    if date.strftime("%d/%m/%Y") in worker.unavailable_dates:
         logging.info(f"Worker {worker.identification} cannot have an exception on {date} as it is their day off.")
         return False
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
