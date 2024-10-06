@@ -32,23 +32,29 @@ def is_weekend(date):
 def is_holiday(date_str, holidays_set):
     return date_str in holidays_set
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
     if worker.identification in last_shift_date:
         last_date = last_shift_date[worker.identification]
-        if last_date and (date - last_date).days < 3:
+        if last_date and (date - last_date).days < 3:  # Reduced days between shifts
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
             return False
     
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-        if weekend_tracker[worker.identification] >= 3:
+        if weekend_tracker[worker.identification] >= 4:  # Increased allowed weekends/holidays
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
             return False
 
     week_number = date.isocalendar()[1]
-    if weekly_tracker[worker.identification][week_number] >= worker.weekly_shift_quota:
+    if weekly_tracker[worker.identification][week_number] >= worker.weekly_shift_quota + 1:  # Allow slight over-quota
+        logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
         return False
     
-    if job in job_count[worker.identification] and job_count[worker.identification][job] > 0:
-        return False
-    if date.weekday() == last_date.weekday():
+    if job in job_count[worker.identification] and job_count[worker.identification][job] > 1:  # Allow more job repetitions
+        logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
         return False
 
     return True
