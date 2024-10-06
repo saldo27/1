@@ -67,6 +67,13 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             logging.debug(f"Worker {worker.identification} cannot work on {date} as it is their day off.")
             return False
 
+        # New Constraint: Worker cannot work if they have shifts on the 2 previous days or the 2 following days
+        for offset in [-2, -1, 1, 2]:
+            check_date = date + timedelta(days=offset)
+            if check_date.strftime("%d/%m/%Y") in schedule.get(job, {}):
+                logging.debug(f"Worker {worker.identification} cannot work on {date} due to shifts on surrounding days.")
+                return False
+
     return True
 
 def propose_exception(worker, date, reason, last_shift_date):
