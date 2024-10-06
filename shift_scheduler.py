@@ -110,16 +110,15 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     total_weeks = (total_days // 7) + 1
     calculate_shift_quota(workers, total_shifts, total_weeks)
 
-    # Assign obligatory coverage shifts first
+    # Assign obligatory coverage shifts first and ensure they are assigned to the predefined worker
     for worker in workers:
         for date_str in worker.obligatory_coverage:
             sanitized_date_str = sanitize_date(date_str)
             if sanitized_date_str:
                 date = datetime.strptime(sanitized_date_str, "%d/%m/%Y")
                 for job in jobs:
-                    if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
+                    if worker.identification not in schedule[job].get(date.strftime("%d/%m/%Y"), ''):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                        break
 
     # Assign remaining shifts
     for start_date, end_date in valid_work_periods:
