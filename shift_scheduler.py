@@ -150,12 +150,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                             logging.error(f"No available workers for job {job} on {date_str}.")
                             assigned = True  # Exit the loop as no workers are available
                     else:
-                        worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                        for worker in available_workers:
+                            assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                         assigned = True
 
     return schedule
-
+    
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
     logging.debug(f"Assigning worker {worker.identification} to job {job} on date {date.strftime('%d/%m/%Y')}")
     
