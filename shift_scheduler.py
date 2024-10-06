@@ -142,9 +142,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                     assigned = True
 
-                # Constraint 2: Assign obligatory coverage shifts
+                # Constraint 2: Assign mandatory guard duty shifts
                 for worker in workers:
-                    if date.strftime("%d/%m/%Y") in worker.obligatory_coverage and worker.shift_quota > 0:
+                    if date.strftime("%d/%m/%Y") in worker.mandatory_guard_duty and worker.shift_quota > 0:
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
     return schedule
