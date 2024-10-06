@@ -8,9 +8,9 @@ from icalendar import Calendar, Event
 logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
-    def __init__(self, identification, working_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
+    def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
         self.identification = identification
-        self.working_dates = working_dates
+        self.work_dates = work_dates
         self.percentage_shifts = float(percentage) if percentage else 100.0
         self.group = group
         self.incompatible_job = incompatible_job
@@ -45,7 +45,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     if isinstance(date, str) and date:
         date = datetime.strptime(sanitize_date(date), "%d/%m/%Y")
 
-    if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.working_dates if day]:
+    if date in [datetime.strptime(sanitize_date(day), "%d/%m/%Y") for day in worker.work_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
