@@ -22,7 +22,7 @@ class Worker:
 
 def calculate_shift_quota(workers, total_shifts, total_days):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
-    total_months = total_days / 30  # Approximate number of months
+    total_months = max(total_days / 30, 1)  # Ensure total_months is at least 1
     for worker in workers:
         monthly_shifts = (worker.percentage_shifts / total_percentage) * (total_shifts / total_months)
         worker.monthly_shift_quota = monthly_shifts
