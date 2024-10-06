@@ -86,6 +86,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Holidays: {holidays}")
     logging.debug(f"Jobs: {jobs}")
 
+    def sanitize_date(date_str):
+        return re.sub(r'[^0-9/]', '', date_str).strip()
+
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
     weekend_tracker = {worker.identification: 0 for worker in workers}
@@ -98,8 +101,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     for period in work_periods:
         try:
             start_date_str, end_date_str = period.split('-')
-            start_date = datetime.strptime(start_date_str.strip(), "%d/%m/%Y")
-            end_date = datetime.strptime(end_date_str.strip(), "%d/%m/%Y")
+            start_date = datetime.strptime(sanitize_date(start_date_str), "%d/%m/%Y")
+            end_date = datetime.strptime(sanitize_date(end_date_str), "%d/%m/%Y")
             valid_work_periods.append((start_date, end_date))
         except ValueError as e:
             logging.error(f"Invalid period '{period}': {e}")
@@ -113,8 +116,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     # Assign obligatory coverage shifts first
     for worker in workers:
         for date_str in worker.obligatory_coverage:
-            if date_str.strip():  # Ensure non-empty strings
-                date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Trim spaces here
+            sanitized_date_str = sanitize_date(date_str)
+            if sanitized_date_str:
+                date = datetime.strptime(sanitized_date_str, "%d/%m/%Y")
                 for job in jobs:
                     if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
