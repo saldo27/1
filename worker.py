@@ -13,7 +13,8 @@ class Worker:
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
         self.shift_quota = 0
         self.weekly_shift_quota = 0
-    
+        self.has_exception = False  # Add this line to track exceptions
+
     def __lt__(self, other):
         return (self.shift_quota, self.identification) < (other.shift_quota, other.identification)
 
