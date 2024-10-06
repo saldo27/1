@@ -58,8 +58,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         return False
 
     return True
-
-
     
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
@@ -86,7 +84,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             for job in jobs:
                 available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
                 if available_workers:
-                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota))
+                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                     last_shift_date[worker.identification] = date
                     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
                     daily_assigned_workers.add(worker.identification)
@@ -100,7 +98,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                     print(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}")
 
     return schedule
-
 def export_to_ical(schedule_text):
     cal = Calendar()
     cal.add('prodid', '-//Shift Scheduler//')
