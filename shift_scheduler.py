@@ -72,6 +72,12 @@ def propose_exception(worker, date, reason):
     return confirmation.lower() == 'yes'
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
+    # Debug: Print initial inputs
+    logging.debug(f"Workers: {workers}")
+    logging.debug(f"Work Periods: {work_periods}")
+    logging.debug(f"Holidays: {holidays}")
+    logging.debug(f"Jobs: {jobs}")
+
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
     weekend_tracker = {worker.identification: 0 for worker in workers}
@@ -88,7 +94,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             end_date = datetime.strptime(end_date_str.strip(), "%d/%m/%Y")
             valid_work_periods.append((start_date, end_date))
         except ValueError as e:
-            print(f"Invalid period '{period}': {e}")
+            logging.error(f"Invalid period '{period}': {e}")
 
     total_days = sum((end_date - start_date).days + 1 for start_date, end_date in valid_work_periods)
     jobs_per_day = len(jobs)
@@ -99,6 +105,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             for job in jobs:
+                # Debug: Log date and job being processed
+                logging.debug(f"Processing job '{job}' on date {date}")
+
                 # Assign mandatory guard duty shifts first
                 for worker in workers:
                     if date in worker.obligatory_coverage:
@@ -117,7 +126,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                                     break
                                 else:
                                     # Stop the allocation process until confirmation is received
-                                    print(f"Shift allocation stopped for {job} on {date}. Awaiting confirmation for proposed exception.")
+                                    logging.info(f"Shift allocation stopped for {job} on {date}. Awaiting confirmation for proposed exception.")
                                     return schedule
                             else:
                                 logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
