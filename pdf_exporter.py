@@ -34,8 +34,10 @@ class PDFCalendar(FPDF):
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     # Adjust font size to fit content
                     self.set_font_size(8)
+                    y_before = self.get_y()
                     self.multi_cell(25, 20, cell_content, border=1, align='C')
-                    self.set_xy(self.get_x() + 25, self.get_y() - 20)  # Move to the next cell position
+                    self.set_y(y_before)  # Reset y position to start of the cell
+                    self.set_x(self.get_x() + 25)  # Move to the next cell
                     self.set_font_size(10)  # Reset font size
             self.ln()
 
