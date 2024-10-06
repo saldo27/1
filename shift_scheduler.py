@@ -133,17 +133,19 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 while not assigned:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, monthly_tracker)]
                     if not available_workers:
+                        # Consider override workers if no regular workers are available
                         available_workers = [worker for worker in workers if worker.shift_quota > 0 and worker.monthly_shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, monthly_tracker, override=True)]
                         if available_workers:
                             worker = available_workers[0]
                             if propose_exception(worker, date_str, "override constraints"):
-                                break
+                                assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker)
+                                assigned = True
                             else:
                                 logging.info(f"Shift allocation stopped for {job} on {date_str}. Awaiting confirmation for proposed exception.")
-                                return schedule
+                                break
                         else:
                             logging.error(f"No available workers for job {job} on {date_str}.")
-                            break  # Prevent infinite loop
+                            assigned = True  # To exit the while loop
                     else:
                         worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker)
