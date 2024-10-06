@@ -19,11 +19,11 @@ class Worker:
         self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
 
-def calculate_shift_quota(workers, total_shifts, total_weeks):
+def calculate_shift_quota(workers, total_shifts, total_days):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
     for worker in workers:
-        worker.shift_quota = (worker.percentage_shifts / total_percentage) * total_shifts
-        worker.weekly_shift_quota = worker.shift_quota / total_weeks
+        worker.shift_quota = (worker.percentage_shifts / total_percentage) * (total_days * total_shifts)
+        worker.weekly_shift_quota = worker.shift_quota / total_days * 7
 
 def generate_date_range(start_date, end_date):
     for n in range(int((end_date - start_date).days) + 1):
@@ -107,10 +107,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     total_days = sum((end_date - start_date).days + 1 for start_date, end_date in valid_work_periods)
     jobs_per_day = len(jobs)
     total_shifts = total_days * jobs_per_day
-    total_weeks = (total_days // 7) + 1
-    calculate_shift_quota(workers, total_shifts, total_weeks)
+    calculate_shift_quota(workers, jobs_per_day, total_days)
 
-    # Assign obligatory coverage shifts first and ensure they are assigned to the predefined worker
     for worker in workers:
         for date_str in worker.obligatory_coverage:
             sanitized_date_str = sanitize_date(date_str)
@@ -120,7 +118,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                     if worker.identification not in schedule[job].get(date.strftime("%d/%m/%Y"), ''):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
-    # Assign remaining shifts
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             date_str = date.strftime("%d/%m/%Y")
