@@ -18,14 +18,14 @@ class Worker:
         self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
 
-def calculate_shift_quota(workers, total_shifts, total_days):
-    if total_days == 0 or total_shifts == 0:
-        logging.error("Total days or total shifts cannot be zero.")
+def calculate_shift_quota(workers, jobs_per_day, total_days):
+    if total_days == 0 or jobs_per_day == 0:
+        logging.error("Total days or jobs per day cannot be zero.")
         return
 
     total_percentage = sum(worker.percentage_shifts for worker in workers)
     for worker in workers:
-        worker.shift_quota = max((worker.percentage_shifts / total_percentage) * total_shifts, 0)
+        worker.shift_quota = max((worker.percentage_shifts / total_percentage) * (total_days * jobs_per_day), 0)
         worker.weekly_shift_quota = max(worker.shift_quota / (total_days / 7), 0)
 
 def generate_date_range(start_date, end_date):
@@ -103,6 +103,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Work Periods: {work_periods}")
     logging.debug(f"Holidays: {holidays}")
     logging.debug(f"Jobs: {jobs}")
+
+    if not jobs:
+        logging.error("No jobs defined.")
+        return {}
 
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
