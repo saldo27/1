@@ -38,9 +38,15 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     if not override:
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
-            if last_date and (date - last_date).days < 3:
-                logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
-                return False
+            if last_date:
+                # Ensure at least 4 days between shifts
+                if (date - last_date).days < 4:
+                    logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
+                    return False
+                # Ensure only 1 shift per day
+                if last_date.date() == date.date():
+                    logging.debug(f"Worker {worker.identification} cannot work on {date} because they already have a shift on this day.")
+                    return False
 
         if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
             if weekend_tracker[worker.identification] >= 4:
