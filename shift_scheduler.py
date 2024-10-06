@@ -8,14 +8,14 @@ import heapq
 logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
-    def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, unavailable_dates):
+    def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, mandatory_guard_duty, unavailable_dates):
         self.identification = identification
         self.work_dates = work_dates
         self.percentage_shifts = float(percentage) if percentage else 100.0
         self.group = group
         self.incompatible_job = incompatible_job
         self.group_incompatibility = group_incompatibility
-        self.obligatory_coverage = obligatory_coverage
+        self.mandatory_guard_duty = mandatory_guard_duty
         self.unavailable_dates = unavailable_dates  # Ensure this attribute is present
         self.has_exception = False  # Track if the worker has an accepted exception
 
@@ -142,13 +142,13 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                     assigned = True
 
-                # Constraint 2: Assign mandatory guard duty shifts
+                # Constraint 2: Assign mandatory_guard_duty shifts
                 for worker in workers:
-                    if date.strftime("%d/%m/%Y") in worker.mandatory_guard_duty and worker.shift_quota > 0:
+                    if date.strftime("%d/%m/%Y") in worker.omandatory_guard_duty and worker.shift_quota > 0:
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
 
     return schedule
-    
+
 def find_alternative_worker(date, job, workers, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job_count):
     for worker in workers:
         if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True):
