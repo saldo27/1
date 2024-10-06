@@ -84,7 +84,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
 
     total_days = sum((end_date - start_date).days + 1 for start_date, end_date in valid_work_periods)
     jobs_per_day = len(jobs)
-    total_shifts = total_days * jobs_per day
+    total_shifts = total_days * jobs_per_day
     total_weeks = (total_days // 7) + 1
     calculate_shift_quota(workers, total_shifts, total_weeks)
 
