@@ -21,6 +21,10 @@ class Worker:
         self.monthly_shift_quota = 0  # Initialize monthly_shift_quota
 
 def calculate_shift_quota(workers, total_shifts, total_days):
+    if total_days == 0:
+        logging.error("Total days cannot be zero.")
+        return
+
     total_percentage = sum(worker.percentage_shifts for worker in workers)
     total_months = max(total_days / 30, 1)  # Ensure total_months is at least 1
     for worker in workers:
