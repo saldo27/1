@@ -35,6 +35,10 @@ def is_holiday(date_str, holidays_set):
     return date_str in holidays_set
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
+    if date in worker.unavailable_dates:
+        logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
+        return False
+
     if not override:
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
@@ -63,7 +67,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
 
     return True
-
 def propose_exception(worker, date, reason):
     logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
     # Wait for user confirmation
@@ -102,38 +105,40 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     total_weeks = (total_days // 7) + 1
     calculate_shift_quota(workers, total_shifts, total_weeks)
 
+    # Assign obligatory coverage shifts first
+    for worker in workers:
+        for date in worker.obligatory_coverage:
+            for job in jobs:
+                if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
+                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                    break
+
+    # Assign remaining shifts
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             for job in jobs:
                 # Debug: Log date and job being processed
                 logging.debug(f"Processing job '{job}' on date {date}")
 
-                # Assign mandatory guard duty shifts first
-                for worker in workers:
-                    if date in worker.obligatory_coverage:
-                        if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
-                            assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                            break
-                else:
-                    assigned = False
-                    while not assigned:
-                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
-                        if not available_workers:
-                            available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
-                            if available_workers:
-                                worker = available_workers[0]
-                                if propose_exception(worker, date, "override constraints"):
-                                    break
-                                else:
-                                    # Stop the allocation process until confirmation is received
-                                    logging.info(f"Shift allocation stopped for {job} on {date}. Awaiting confirmation for proposed exception.")
-                                    return schedule
+                assigned = False
+                while not assigned:
+                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
+                    if not available_workers:
+                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
+                        if available_workers:
+                            worker = available_workers[0]
+                            if propose_exception(worker, date, "override constraints"):
+                                break
                             else:
-                                logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
-                                continue
-                        worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                        assigned = True
+                                # Stop the allocation process until confirmation is received
+                                logging.info(f"Shift allocation stopped for {job} on {date}. Awaiting confirmation for proposed exception.")
+                                return schedule
+                        else:
+                            logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
+                            continue
+                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
+                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                    assigned = True
 
     return schedule
 
