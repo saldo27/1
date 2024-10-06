@@ -1,9 +1,11 @@
-from models import Shift
+import logging
 from datetime import timedelta, datetime
-import random
 from collections import defaultdict
+from models import Shift
 from icalendar import Calendar, Event
 import heapq
+
+logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
     def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
@@ -27,38 +29,39 @@ def generate_date_range(start_date, end_date):
         yield start_date + timedelta(n)
 
 def is_weekend(date):
-    return date.weekday() >= 5  # 5 for Saturday and 6 for Sunday
+    return date.weekday() >= 5
 
 def is_holiday(date_str, holidays_set):
     return date_str in holidays_set
 
-import logging
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
+    if not override:
+        if worker.identification in last_shift_date:
+            last_date = last_shift_date[worker.identification]
+            if last_date and (date - last_date).days < 3:
+                logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
+                return False
 
-logging.basicConfig(level=logging.DEBUG)
+        if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+            if weekend_tracker[worker.identification] >= 4:
+                logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
+                return False
 
-def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
-    if worker.identification in last_shift_date:
-        last_date = last_shift_date[worker.identification]
-        if last_date and (date - last_date).days < 3:  # Days between shifts
-            logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
+        week_number = date.isocalendar()[1]
+        if weekly_tracker[worker.identification][week_number] >= 2:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
             return False
-    
-    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-        if weekend_tracker[worker.identification] >= 4:  # Weekend/holiday limit
-            logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
-            return False
 
-    week_number = date.isocalendar()[1]
-    if weekly_tracker[worker.identification][week_number] >= 2:  # Correct weekly quota limit (2 shifts per week)
-        logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
-        return False
-    
-    if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:  # Job repetition limit
-        logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
-        return False
+        if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
+            return False
 
     return True
-    
+
+def propose_exception(worker, date, reason):
+    logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
+    return True
+
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
@@ -67,8 +70,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     last_shift_date = {worker.identification: past_date for worker in workers}
     job_count = {worker.identification: {job: 0 for job in jobs} for worker in workers}
     weekly_tracker = defaultdict(lambda: defaultdict(int))
-    
-    # Validate work periods
+
     valid_work_periods = []
     for period in work_periods:
         try:
@@ -85,75 +87,31 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     total_weeks = (total_days // 7) + 1
     calculate_shift_quota(workers, total_shifts, total_weeks)
 
-    pq = [(datetime.strptime("01/01/1900", "%d/%m/%Y"), worker) for worker in workers]
-    heapq.heapify(pq)
-
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
-            daily_assigned_workers = set()
             for job in jobs:
-                # Assign mandatory shifts first
-                mandatory_workers = [worker for worker in workers if worker.mandatory_guard_duty and (date.strftime("%d/%m/%Y") in [d.strftime("%d/%m/%Y") for d in worker.mandatory_guard_duty])]
-                if mandatory_workers:
-                    worker = mandatory_workers[0]
-                else:
+                assigned = False
+                while not assigned:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
-                    if available_workers:
-                        worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
-                    else:
-                        print(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}")
-                        continue
-
-                last_shift_date[worker.identification] = date
-                schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
-                daily_assigned_workers.add(worker.identification)
-                job_count[worker.identification][job] += 1
-                weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-                if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-                    weekend_tracker[worker.identification] += 1
-                worker.shift_quota -= 1
-                heapq.heappush(pq, (date + timedelta(days=3), worker))
+                    if not available_workers:
+                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
+                        if available_workers:
+                            worker = available_workers[0]
+                            if propose_exception(worker, date, "override constraints"):
+                                break
+                            else:
+                                continue
+                        else:
+                            logging.error(f"No available workers for job {job} on {date.strftime('%d/%m/%Y')}.")
+                            continue
+                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
+                    last_shift_date[worker.identification] = date
+                    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
+                    job_count[worker.identification][job] += 1
+                    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
+                    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+                        weekend_tracker[worker.identification] += 1
+                    worker.shift_quota -= 1
+                    assigned = True
 
     return schedule
-    
-def export_to_ical(schedule_text):
-    cal = Calendar()
-    cal.add('prodid', '-//Shift Scheduler//')
-    cal.add('version', '2.0')
-
-    for line in schedule_text.split('\n'):
-        if line.startswith("Job"):
-            job = line.split()[1][:-1]
-        elif line.strip():
-            date_str, worker_id = line.strip().split(': ')
-            date = datetime.strptime(date_str, "%d/%m/%Y")
-            event = Event()
-            event.add('summary', f"{job} shift & {worker_id}")
-            event.add('dtstart', date)
-            event.add('dtend', date + timedelta(days=1))
-            event.add('description', f"Worker ID: {worker_id}")
-            cal.add_component(event)
-
-    with open('schedule.ics', 'wb') as f:
-        f.write(cal.to_ical())
-
-def generate_worker_report(schedule_text):
-    report = ""
-    worker_shifts = {}
-
-    for line in schedule_text.split('\n'):
-        if line.startswith("Job"):
-            job = line.split()[1][:-1]
-        elif line.strip():
-            date_str, worker_id = line.strip().split(': ')
-            if worker_id not in worker_shifts:
-                worker_shifts[worker_id] = []
-            worker_shifts[worker_id].append(f"{job} on {date_str}")
-
-    for worker_id, shifts in worker_shifts.items():
-        report += f"Worker ID: {worker_id}\n"
-        for shift in shifts:
-            report += f"  {shift}\n"
-        report += "\n"
-
-    return report
