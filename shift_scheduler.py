@@ -93,7 +93,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             daily_assigned_workers = set()
             for job in jobs:
                 # Assign mandatory shifts first
-                mandatory_workers = [worker for worker in workers if worker.obligatory_coverage and (date.strftime("%d/%m/%Y") in worker.obligatory_coverage)]
+                mandatory_workers = [worker for worker in workers if worker.mandatory_guard_duty and (date.strftime("%d/%m/%Y") in [d.strftime("%d/%m/%Y") for d in worker.mandatory_guard_duty])]
                 if mandatory_workers:
                     worker = mandatory_workers[0]
                 else:
