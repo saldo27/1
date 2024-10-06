@@ -86,7 +86,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
             for job in jobs:
                 available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
                 if available_workers:
-                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days, w.shift_quota))
+                    worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota))
                     last_shift_date[worker.identification] = date
                     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
                     daily_assigned_workers.add(worker.identification)
