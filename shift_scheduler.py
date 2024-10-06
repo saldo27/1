@@ -104,7 +104,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 worker.shift_quota -= 1
                 heapq.heappush(pq, (date + timedelta(days=3), worker))
 
-    return schedule    
+    return schedule
+    
 def export_to_ical(schedule_text):
     cal = Calendar()
     cal.add('prodid', '-//Shift Scheduler//')
