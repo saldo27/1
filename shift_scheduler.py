@@ -18,6 +18,53 @@ class Worker:
         self.obligatory_coverage = obligatory_coverage  # Ensure this attribute is initialized
         self.day_off = day_off
 
+def calculate_shift_quota(workers, total_shifts, total_weeks):
+    total_percentage = sum(worker.percentage_shifts for worker in workers)
+    for worker in workers:
+        worker.shift_quota = (worker.percentage_shifts / total_percentage) * total_shifts
+        worker.weekly_shift_quota = worker.shift_quota / total_weeks
+
+def generate_date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days) + 1):
+        yield start_date + timedelta(n)
+
+def is_weekend(date):
+    return date.weekday() >= 5
+
+def is_holiday(date_str, holidays_set):
+    return date_str in holidays_set
+
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
+    if not override:
+        if worker.identification in last_shift_date:
+            last_date = last_shift_date[worker.identification]
+            if last_date and (date - last_date).days < 3:
+                logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
+                return False
+
+        if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+            if weekend_tracker[worker.identification] >= 4:
+                logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
+                return False
+
+        week_number = date.isocalendar()[1]
+        if weekly_tracker[worker.identification][week_number] >= 2:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
+            return False
+
+        if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
+            return False
+
+    return True
+
+def propose_exception(worker, date, reason):
+    logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
+    # Wait for user confirmation
+    # This is a placeholder for actual confirmation logic, e.g., a GUI dialog or a user input prompt
+    confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
+    return confirmation.lower() == 'yes'
+
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
