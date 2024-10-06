@@ -145,6 +145,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
 
                 for worker in available_workers:
-                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                    if worker.shift_quota > 0:
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                        break  # Ensure only one worker is assigned per job per day
 
     return schedule
