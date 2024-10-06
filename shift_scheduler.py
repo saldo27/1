@@ -18,10 +18,14 @@ class Worker:
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
         self.day_off = day_off
+        self.monthly_shift_quota = 0  # Initialize monthly_shift_quota
 
 def calculate_shift_quota(workers, total_shifts, total_days):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
+    total_months = total_days / 30  # Approximate number of months
     for worker in workers:
+        monthly_shifts = (worker.percentage_shifts / total_percentage) * (total_shifts / total_months)
+        worker.monthly_shift_quota = monthly_shifts
         worker.shift_quota = (worker.percentage_shifts / total_percentage) * (total_days * total_shifts)
         worker.weekly_shift_quota = worker.shift_quota / total_days * 7
 
