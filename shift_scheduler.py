@@ -162,13 +162,4 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
     worker.shift_quota -= 1
     worker.monthly_shift_quota -= 1
 
-def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, monthly_tracker):
-    last_shift_date[worker.identification] = date
-    schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
-    job_count[worker.identification][job] += 1
-    weekly_tracker[worker.identification][date.isocalendar()[1]] += 1
-    monthly_tracker[worker.identification][date.month] += 1
-    if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
-        weekend_tracker[worker.identification] += 1
-    worker.shift_quota -= 1
-    worker.monthly_shift_quota -= 1
+
