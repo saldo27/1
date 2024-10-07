@@ -32,8 +32,10 @@ def is_weekend(date):
     return date.weekday() >= 5
 
 def is_holiday(date_str, holidays_set):
-    date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
-    return date_str in holidays_set
+    if isinstance(date_str, str) and date_str:  # Check if date_str is a non-empty string
+        return date_str in holidays_set
+    else:
+        return False
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
     if isinstance(date, str) and date:  # Check if date is a non-empty string
