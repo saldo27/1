@@ -37,9 +37,9 @@ def is_holiday(date_str, holidays_set):
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
     if isinstance(date, str) and date:  # Check if date is a non-empty string
-        date = datetime.strptime(date, "%d/%m/%Y")  # Ensure date is a datetime object
+        date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
     
-  if date in [datetime.strptime(day.strip(), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
+    if date in [datetime.strptime(day.strip(), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
@@ -47,7 +47,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
             if isinstance(last_date, str) and last_date:  # Ensure non-empty strings
-                last_date = datetime.strptime(last_date, "%d/%m/%Y")
+                last_date = datetime.strptime(last_date.strip(), "%d/%m/%Y")
             if last_date:
                 # Ensure at least 4 days between shifts
                 if (date - last_date).days < 4:
@@ -61,7 +61,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
             if weekend_tracker[worker.identification] >= 4:
                 logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
-                last_date = datetime.strptime(last_date.strip(), "%d/%m/%Y")
                 return False
 
         week_number = date.isocalendar()[1]
