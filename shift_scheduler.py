@@ -38,7 +38,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     if isinstance(date, str) and date:  # Check if date is a non-empty string
         date = datetime.strptime(date, "%d/%m/%Y")  # Ensure date is a datetime object
     
-   if date in [datetime.strptime(day.strip(), "%d/%m/%Y") for day in worker.unavailable_dates if day]: 
+  if date in [datetime.strptime(day.strip(), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
