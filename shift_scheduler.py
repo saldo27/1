@@ -76,7 +76,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
 
     return True
 
-# Updated schedule_shifts function
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
     logging.debug(f"Work Periods: {work_periods}")
@@ -112,10 +111,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
         for date_str in worker.obligatory_coverage:
             if date_str.strip():  # Ensure non-empty strings
                 date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Trim spaces here
+                logging.debug(f"Trying to assign obligatory coverage shift for Worker {worker.identification} on {date} for jobs {jobs}")
                 for job in jobs:
                     if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                        break  # Exit inner loop
+                        logging.debug(f"Assigned obligatory coverage shift for Worker {worker.identification} on {date} for job {job}")
+                        break
                 else:
                     continue  # Continue if inner loop wasn't broken
                 break  # Exit outer loop once a shift is assigned
@@ -144,10 +145,11 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                             continue
                     worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                     assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
+                    logging.debug(f"Assigned shift for Worker {worker.identification} on {date} for job {job}")
                     assigned = True
 
     return schedule
-    
+
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
     last_shift_date[worker.identification] = date
     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
