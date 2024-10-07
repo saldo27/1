@@ -32,6 +32,7 @@ def is_weekend(date):
     return date.weekday() >= 5
 
 def is_holiday(date_str, holidays_set):
+    date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
     return date_str in holidays_set
 
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
@@ -60,6 +61,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
             if weekend_tracker[worker.identification] >= 4:
                 logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
+                last_date = datetime.strptime(last_date.strip(), "%d/%m/%Y")
                 return False
 
         week_number = date.isocalendar()[1]
