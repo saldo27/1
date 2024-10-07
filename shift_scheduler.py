@@ -76,6 +76,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
 
     return True
 
+# Updated schedule_shifts function
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
     logging.debug(f"Work Periods: {work_periods}")
@@ -114,7 +115,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 for job in jobs:
                     if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
-                        break
+                        break  # Exit inner loop
+                else:
+                    continue  # Continue if inner loop wasn't broken
+                break  # Exit outer loop once a shift is assigned
 
     # Assign remaining shifts
     for start_date, end_date in valid_work_periods:
@@ -143,7 +147,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                     assigned = True
 
     return schedule
-
+    
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
     last_shift_date[worker.identification] = date
     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
