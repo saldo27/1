@@ -118,6 +118,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         logging.debug(f"Assigned obligatory coverage shift for Worker {worker.identification} on {date} for job {job}")
                         break
                 else:
+                    logging.debug(f"Worker {worker.identification} cannot be assigned for obligatory coverage on {date} for any job.")
                     continue  # Continue if inner loop wasn't broken
                 break  # Exit outer loop once a shift is assigned
 
