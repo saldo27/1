@@ -40,7 +40,7 @@ def is_holiday(date_str, holidays_set):
 def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=False):
     if isinstance(date, str) and date:  # Check if date is a non-empty string
         date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
-    
+
     if date in [datetime.strptime(day.strip(), "%d/%m/%Y") for day in worker.unavailable_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
@@ -75,13 +75,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
 
     return True
-    
-def propose_exception(worker, date, reason):
-    logging.info(f"Proposing exception for Worker {worker.identification} on {date} due to {reason}.")
-    # Wait for user confirmation
-    # This is a placeholder for actual confirmation logic, e.g., a GUI dialog or a user input prompt
-    confirmation = input(f"Confirm exception for Worker {worker.identification} on {date} (yes/no): ")
-    return confirmation.lower() == 'yes'
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
