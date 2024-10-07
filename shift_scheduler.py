@@ -77,6 +77,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
     return True
 
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set):
+    logging.debug(f"Assigning worker {worker.identification} to job {job} on {date.strftime('%d/%m/%Y')}")
     last_shift_date[worker.identification] = date
     schedule[job][date.strftime("%d/%m/%Y")] = worker.identification
     job_count[worker.identification][job] += 1
@@ -84,7 +85,7 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
         weekend_tracker[worker.identification] += 1
     worker.shift_quota -= 1
-    logging.debug(f"Assigned worker {worker.identification} to job {job} on {date.strftime('%d/%m/%Y')}")
+    logging.debug(f"Worker {worker.identification} assigned to job {job} on {date.strftime('%d/%m/%Y')}. Updated schedule: {schedule[job][date.strftime('%d/%m/%Y')]}")
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
@@ -168,4 +169,5 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         logging.error(f"Exceeded maximum iterations for job {job} on {date_str}. Exiting to prevent infinite loop.")
                         assigned = True  # Exit the loop to prevent infinite loop
 
+    logging.debug(f"Final schedule: {schedule}")
     return schedule
