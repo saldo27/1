@@ -130,6 +130,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                 logging.debug(f"Processing job '{job}' on date {date_str}")
 
                 assigned = False
+                max_iterations = len(workers) * 2  # Prevent infinite loop
+                iteration_count = 0
+
                 while not assigned:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count)]
                     if not available_workers:
@@ -143,11 +146,17 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                                 return schedule
                         else:
                             logging.error(f"No available workers for job {job} on {date_str}.")
-                            continue
+                            assigned = True  # Exit the loop if no workers are available
+                            break
                     worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                     assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set)
                     logging.debug(f"Assigned shift for Worker {worker.identification} on {date} for job {job}")
                     assigned = True
+
+                    iteration_count += 1
+                    if iteration_count >= max_iterations:
+                        logging.error(f"Exceeded maximum iterations for job {job} on {date_str}. Exiting to prevent infinite loop.")
+                        assigned = True  # Exit the loop to prevent infinite loop
 
     return schedule
 
