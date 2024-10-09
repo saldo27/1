@@ -32,10 +32,8 @@ class PDFCalendar(FPDF):
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
-                    self.multi_cell(25, 5, cell_content, border=1, align='C')
-                    x, y = self.get_x(), self.get_y()
-                    self.set_xy(x + 25, y - (5 * (len(shifts) + 1)))  # Adjust the y position after multi_cell
-            self.ln(40)  # Move to the next row after a week
+                    self.cell(25, 40, cell_content, 1, 0, 'C')
+            self.ln()
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
