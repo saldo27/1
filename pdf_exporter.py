@@ -13,7 +13,7 @@ class PDFCalendar(FPDF):
         self.ln(10)
 
         # Create a table for the calendar
-        self.set_font('Arial', 'B', 6)  # Reduced font size to 6
+        self.set_font('Arial', 'B', 8)
         days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         for day in days:
             self.cell(25, 10, day, 1, 0, 'C')
@@ -21,39 +21,26 @@ class PDFCalendar(FPDF):
 
         cal = calendar.Calendar(firstweekday=0)
         month_days = cal.monthdayscalendar(year, month)
-        self.set_font('Arial', '', 6)  # Reduced font size to 6
+        self.set_font('Arial', '', 8)
 
         for week in month_days:
-            x_start = self.get_x()
-            y_start = self.get_y()
-            max_y = y_start
-
             for day in week:
                 if day == 0:
-                    self.cell(25, 50, '', 1, 0, 'C')  # Adjusted height for 5 rows
-                    x_start += 25
+                    self.cell(25, 40, '', 1, 0, 'C')
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     lines = cell_content.split('\n')
-                    self.set_xy(x_start, y_start)  # Ensure correct positioning before writing
-                    for line in lines:
-                        self.multi_cell(25, 10, line, 1, 'C', False)  # 5 rows of 10 height each
-                        y_start += 10
-                        self.set_xy(x_start, y_start)
-                    x_start += 25
-                    self.set_xy(x_start, y_start)
-                    max_y = max(max_y, self.get_y())
+                    self.multi_cell(25, 8, "\n".join(lines), 1, 'C')
 
-            self.set_y(max_y)
             self.ln()
 
             # Check if the next row will fit on the page, if not, add a new page
-            if self.get_y() + 50 > self.page_break_trigger:
+            if self.get_y() + 40 > self.page_break_trigger:
                 self.add_page()
                 self.set_y(self.t_margin)
-                self.set_font('Arial', 'B', 6)  # Reduced font size to 6
+                self.set_font('Arial', 'B', 8)
                 for day in days:
                     self.cell(25, 10, day, 1, 0, 'C')
                 self.ln()
