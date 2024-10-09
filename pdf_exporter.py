@@ -44,6 +44,15 @@ class PDFCalendar(FPDF):
 
             self.set_y(max_y)
             self.ln()
+            
+            # Check if the next row will fit on the page, if not, add a new page
+            if self.get_y() + 40 > self.page_break_trigger:
+                self.add_page()
+                self.set_y(self.t_margin)
+                self.set_font('Arial', 'B', 10)
+                for day in days:
+                    self.cell(25, 10, day, 1, 0, 'C')
+                self.ln()
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
