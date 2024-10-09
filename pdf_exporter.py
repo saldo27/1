@@ -35,17 +35,15 @@ class PDFCalendar(FPDF):
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
-                    # Split content into lines for vertical display
                     lines = cell_content.split('\n')
                     self.multi_cell(25, 10, "\n".join(lines), 1, 'C')
-                    max_y = max(max_y, self.get_y())
                     self.set_xy(x_start + 25, y_start)
+                    max_y = max(max_y, self.get_y())
                 x_start += 25
 
             self.set_y(max_y)
             self.ln()
-            
-            # Check if the next row will fit on the page, if not, add a new page
+
             if self.get_y() + 40 > self.page_break_trigger:
                 self.add_page()
                 self.set_y(self.t_margin)
@@ -61,7 +59,7 @@ def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
 
     current_date = start_date
     while current_date <= end_date:
-        pdf.add_page()  # Ensure each new month starts on a new sheet
+        pdf.add_page()
         pdf.add_month(current_date.year, current_date.month, schedule)
         current_date += timedelta(days=32)
         current_date = current_date.replace(day=1)
