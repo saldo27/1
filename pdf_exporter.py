@@ -13,7 +13,7 @@ class PDFCalendar(FPDF):
         self.ln(10)
 
         # Create a table for the calendar
-        self.set_font('Arial', 'B', 8)  # Reduced font size
+        self.set_font('Arial', 'B', 6)  # Reduced font size to 6
         days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         for day in days:
             self.cell(25, 10, day, 1, 0, 'C')
@@ -21,7 +21,7 @@ class PDFCalendar(FPDF):
 
         cal = calendar.Calendar(firstweekday=0)
         month_days = cal.monthdayscalendar(year, month)
-        self.set_font('Arial', '', 8)  # Reduced font size
+        self.set_font('Arial', '', 6)  # Reduced font size to 6
 
         for week in month_days:
             x_start = self.get_x()
@@ -30,7 +30,7 @@ class PDFCalendar(FPDF):
 
             for day in week:
                 if day == 0:
-                    self.cell(25, 40, '', 1, 0, 'C')
+                    self.cell(25, 50, '', 1, 0, 'C')  # Adjusted height for 5 rows
                     x_start += 25
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
@@ -38,7 +38,7 @@ class PDFCalendar(FPDF):
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     lines = cell_content.split('\n')
                     self.set_xy(x_start, y_start)  # Ensure correct positioning before writing
-                    self.multi_cell(25, 8, "\n".join(lines), 1, 'C')  # Adjusted height to match font size
+                    self.multi_cell(25, 10, "\n".join(lines), 1, 'C')  # 5 rows of 10 height each
                     x_start += 25
                     self.set_xy(x_start, y_start)
                     max_y = max(max_y, self.get_y())
@@ -47,10 +47,10 @@ class PDFCalendar(FPDF):
             self.ln()
 
             # Check if the next row will fit on the page, if not, add a new page
-            if self.get_y() + 40 > self.page_break_trigger:
+            if self.get_y() + 50 > self.page_break_trigger:
                 self.add_page()
                 self.set_y(self.t_margin)
-                self.set_font('Arial', 'B', 8)  # Reduced font size
+                self.set_font('Arial', 'B', 6)  # Reduced font size to 6
                 for day in days:
                     self.cell(25, 10, day, 1, 0, 'C')
                 self.ln()
