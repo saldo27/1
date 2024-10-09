@@ -13,7 +13,7 @@ class PDFCalendar(FPDF):
         self.ln(10)
 
         # Create a table for the calendar
-        self.set_font('Arial', 'B', 10)
+        self.set_font('Arial', 'B', 8)  # Reduced font size
         days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         for day in days:
             self.cell(25, 10, day, 1, 0, 'C')
@@ -21,7 +21,7 @@ class PDFCalendar(FPDF):
 
         cal = calendar.Calendar(firstweekday=0)
         month_days = cal.monthdayscalendar(year, month)
-        self.set_font('Arial', '', 10)
+        self.set_font('Arial', '', 8)  # Reduced font size
 
         for week in month_days:
             x_start = self.get_x()
@@ -38,7 +38,7 @@ class PDFCalendar(FPDF):
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     lines = cell_content.split('\n')
                     self.set_xy(x_start, y_start)  # Ensure correct positioning before writing
-                    self.multi_cell(25, 10, "\n".join(lines), 1, 'C')
+                    self.multi_cell(25, 8, "\n".join(lines), 1, 'C')  # Adjusted height to match font size
                     x_start += 25
                     self.set_xy(x_start, y_start)
                     max_y = max(max_y, self.get_y())
@@ -50,7 +50,7 @@ class PDFCalendar(FPDF):
             if self.get_y() + 40 > self.page_break_trigger:
                 self.add_page()
                 self.set_y(self.t_margin)
-                self.set_font('Arial', 'B', 10)
+                self.set_font('Arial', 'B', 8)  # Reduced font size
                 for day in days:
                     self.cell(25, 10, day, 1, 0, 'C')
                 self.ln()
