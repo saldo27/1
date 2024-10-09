@@ -48,11 +48,10 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             if isinstance(last_date, str) and last_date:  # Ensure non-empty strings
                 last_date = datetime.strptime(last_date.strip(), "%d/%m/%Y")
             if last_date:
-                # Ensure at least 4 days between shifts
-                if (date - last_date).days < 4:
+                min_distance = max(4, 100 * 4 / worker.percentage_shifts)  # Minimum distance calculation
+                if (date - last_date).days < min_distance:
                     logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
                     return False
-                # Ensure only 1 shift per day
                 if last_date.date() == date.date():
                     logging.debug(f"Worker {worker.identification} cannot work on {date} because they already have a shift on this day.")
                     return False
@@ -147,11 +146,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
                         available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, override=True)]
                         if available_workers:
                             worker = available_workers[0]
-                            if propose_exception(worker, date_str, "override constraints"):
-                                break
-                            else:
-                                logging.info(f"Shift allocation stopped for {job} on {date_str}. Awaiting confirmation for proposed exception.")
-                                return schedule
+                            break
                         else:
                             logging.error(f"No available workers for job {job} on {date_str}.")
                             assigned = True  # Exit the loop if no workers are available
