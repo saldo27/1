@@ -21,6 +21,8 @@ class MainWindow(QMainWindow):
         self.holidays_input = QLineEdit()
         self.jobs_input = QLineEdit()
         self.num_workers_input = QLineEdit()
+        self.min_distance_input = QLineEdit()
+        self.max_shifts_per_week_input = QLineEdit()
         self.previous_shifts_input = QLineEdit()
         self.worker_inputs = []
         self.output_display = QTextEdit()
@@ -40,6 +42,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.holidays_input)
         layout.addWidget(QLabel("Enter jobs (comma-separated, e.g., 'A,B,C'):"))
         layout.addWidget(self.jobs_input)
+        layout.addWidget(QLabel("Enter minimum distance between work shifts (in days):"))
+        layout.addWidget(self.min_distance_input)
+        layout.addWidget(QLabel("Enter maximum shifts that can be assigned per week:"))
+        layout.addWidget(self.max_shifts_per_week_input)
         layout.addWidget(QLabel("Enter number of workers:"))
         layout.addWidget(self.num_workers_input)
                 
@@ -108,6 +114,8 @@ class MainWindow(QMainWindow):
         holidays = self.holidays_input.text().split(',')
         jobs = self.jobs_input.text().split(',')
         num_workers = int(self.num_workers_input.text())
+        min_distance = int(self.min_distance_input.text())
+        max_shifts_per_week = int(self.max_shifts_per_week_input.text())
         previous_shifts_input = self.previous_shifts_input.text().split(',')
         # Create workers list from user input
         workers = [
@@ -126,7 +134,7 @@ class MainWindow(QMainWindow):
         # Convert previous shifts input
         previous_shifts = [datetime.strptime(shift.strip(), "%d/%m/%Y") for shift in previous_shifts_input if shift]
         # Schedule shifts
-        schedule = schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts)
+        schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week, previous_shifts)
         # Display the schedule
         output = ""
         self.schedule = schedule  # Save the schedule for exporting
@@ -156,7 +164,6 @@ class MainWindow(QMainWindow):
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as PDF", "", "PDF Files (*.pdf);;All Files (*)", options=options)
         if filePath:
             export_schedule_to_pdf(self.schedule, filename=filePath)
-
 
 app = QApplication(sys.argv)
 window = MainWindow()
