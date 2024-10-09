@@ -2,7 +2,6 @@ from cli import run_cli
 import sys
 from PySide6.QtWidgets import QApplication
 from gui import MainWindow
-from datetime import datetime
 from worker import Worker
 from shift_scheduler import schedule_shifts, prepare_breakdown, export_breakdown
 
@@ -26,22 +25,17 @@ if __name__ == "__main__":
 
     # Example worker data, replace with actual data as needed
     workers = [
-        Worker(
+        Worker.from_user_input(
             identification=f"W{i+1}",
-            work_dates=[("01/10/2024", "15/10/2024"), ("20/10/2024", "31/10/2024")],
-            percentage=100.0,
+            working_dates="01/10/2024-15/10/2024,20/10/2024-31/10/2024",
+            percentage_shifts=100.0,
             group='1',
-            incompatible_job=[],
-            group_incompatibility=[],
-            obligatory_coverage=[],
-            day_off=[],
-            unavailable_dates=[]
+            position_incompatibility="",
+            group_incompatibility="",
+            obligatory_coverage="",
+            unavailable_dates=""
         ) for i in range(num_workers)
     ]
-
-    # Convert work_dates to datetime tuples
-    for worker in workers:
-        worker.work_dates = [(datetime.strptime(start, "%d/%m/%Y"), datetime.strptime(end, "%d/%m/%Y")) for start, end in worker.work_dates]
 
     # Schedule shifts
     schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
