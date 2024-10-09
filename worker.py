@@ -1,16 +1,17 @@
 from datetime import datetime
 
 class Worker:
-    def __init__(self, identification, working_dates=None, percentage_shifts=0, group=0, position_incompatibility=None,
-                 group_incompatibility=None, obligatory_coverage=None, unavailable_dates=None):
+   def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, day_off=None, unavailable_dates=None):
         self.identification = identification
-        self.working_dates = working_dates if working_dates else []
-        self.percentage_shifts = percentage_shifts
-        self.group = group
-        self.position_incompatibility = position_incompatibility if position_incompatibility else []
+        self.work_dates = work_dates if work_dates else []
+        self.percentage_shifts = float(percentage) if percentage else 100.0
+        self.group = group if group else '1'
+        self.incompatible_job = incompatible_job if incompatible_job else []
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
         self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
+        self.day_off = day_off if day_off else []
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
+
         self.shift_quota = 0
         self.weekly_shift_quota = 0
         self.has_exception = False  # Add this line to track exceptions
