@@ -1,3 +1,7 @@
+from fpdf import FPDF
+from datetime import datetime, timedelta
+import calendar
+
 class PDFCalendar(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 12)
@@ -26,7 +30,7 @@ class PDFCalendar(FPDF):
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [worker for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
-                    cell_content = " ".join(shifts)
+                    cell_content = ", ".join(shifts)  # Insert commas between values
                     self.cell(25, 20, cell_content, 1, 0, 'C')  # Adjusted height for content
 
             self.ln()
