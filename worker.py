@@ -3,7 +3,7 @@ from datetime import datetime
 class Worker:
     def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, day_off=None, unavailable_dates=None):
         self.identification = identification
-        self.work_dates = work_dates if work_dates else []
+        self.work_dates = [(datetime.strptime(start.strip(), "%d/%m/%Y"), datetime.strptime(end.strip(), "%d/%m/%Y")) for start, end in work_dates] if work_dates else []
         self.percentage_shifts = float(percentage) if percentage else 100.0
         self.group = group if group else '1'
         self.incompatible_job = incompatible_job if incompatible_job else []
