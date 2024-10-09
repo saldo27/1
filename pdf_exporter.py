@@ -25,11 +25,11 @@ class PDFCalendar(FPDF):
         self.set_font('Arial', '', 10)
 
         for week in month_days:
-            x_start = self.get_x()
             y_start = self.get_y()
             max_y = y_start
 
             for day in week:
+                x_start = self.get_x()
                 if day == 0:
                     self.cell(25, 40, '', 1, 0, 'C')
                 else:
@@ -39,10 +39,9 @@ class PDFCalendar(FPDF):
                     # Split content into lines for vertical display
                     lines = cell_content.split('\n')
                     self.multi_cell(25, 10, "\n".join(lines), 1, 'C')
-                    x_end = self.get_x()
                     max_y = max(max_y, self.get_y())
                     self.set_xy(x_start + 25, y_start)
-                x_start += 25
+                self.set_xy(x_start + 25, y_start)
 
             self.set_y(max_y)
             self.ln()
