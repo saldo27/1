@@ -8,7 +8,6 @@ class PDFCalendar(FPDF):
         self.cell(0, 10, 'Shift Schedule Calendar', 0, 1, 'C')
 
     def add_month(self, year, month, schedule):
-        self.add_page()
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f'{calendar.month_name[month]} {year}', 0, 1, 'C')
         self.ln(10)
@@ -53,6 +52,7 @@ def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
 
     current_date = start_date
     while current_date <= end_date:
+        pdf.add_page()  # Ensure each new month starts on a new sheet
         pdf.add_month(current_date.year, current_date.month, schedule)
         current_date += timedelta(days=32)
         current_date = current_date.replace(day=1)
