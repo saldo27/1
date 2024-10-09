@@ -1,7 +1,3 @@
-from fpdf import FPDF
-from datetime import datetime, timedelta
-import calendar
-
 class PDFCalendar(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 12)
@@ -26,17 +22,17 @@ class PDFCalendar(FPDF):
         for week in month_days:
             for day in week:
                 if day == 0:
-                    self.cell(25, 40, '', 1, 0, 'C')
+                    self.cell(25, 20, '', 1, 0, 'C')  # Adjusted height for content
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [worker for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = " ".join(shifts)
-                    self.cell(25, 40, cell_content, 1, 0, 'C')  # Remove day number and only show worker names
+                    self.cell(25, 20, cell_content, 1, 0, 'C')  # Adjusted height for content
 
             self.ln()
 
             # Check if the next row will fit on the page, if not, add a new page
-            if self.get_y() + 40 > self.page_break_trigger:
+            if self.get_y() + 20 > self.page_break_trigger:  # Adjusted height for content
                 self.add_page()
                 self.set_y(self.t_margin)
                 self.set_font('Arial', 'B', 7)
