@@ -43,18 +43,37 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
+    # Adjust the min_distance based on the worker's percentage of shifts
+    adjusted_min_distance = max(1, int(min_distance * (100 / worker.percentage_shifts)))
+
     if not override:
         if worker.identification in last_shift_date:
             last_date = last_shift_date[worker.identification]
             if isinstance(last_date, str) and last_date:  # Ensure non-empty strings
                 last_date = datetime.strptime(last_date.strip(), "%d/%m/%Y")
             if last_date:
-                if (date - last_date).days < min_distance:
+                if (date - last_date).days < adjusted_min_distance:
                     logging.debug(f"Worker {worker.identification} cannot work on {date} due to recent shift on {last_date}.")
                     return False
                 if last_date.date() == date.date():
                     logging.debug(f"Worker {worker.identification} cannot work on {date} because they already have a shift on this day.")
                     return False
+
+        if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
+            if weekend_tracker[worker.identification] >= 4:
+                logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
+                return False
+
+        week_number = date.isocalendar()[1]
+        if weekly_tracker[worker.identification][week_number] >= max_shifts_per_week:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
+            return False
+
+        if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
+            return False
+
+    return True
 
         if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
             if weekend_tracker[worker.identification] >= 4:
