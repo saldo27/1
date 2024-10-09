@@ -2,7 +2,8 @@ import sys
 from datetime import datetime
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget,
-    QLineEdit, QPushButton, QTextEdit, QFileDialog, QGridLayout
+    QLineEdit, QPushButton, QTextEdit, QFileDialog, QGridLayout,
+    QScrollArea
 )
 from PySide6.QtGui import QAction
 from worker import Worker
@@ -51,7 +52,15 @@ class MainWindow(QMainWindow):
                 
         # Worker inputs layout
         self.worker_layout = QGridLayout()
-        layout.addLayout(self.worker_layout)
+
+        # Scroll area for worker inputs
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area_widget = QWidget()
+        self.scroll_area_widget.setLayout(self.worker_layout)
+        self.scroll_area.setWidget(self.scroll_area_widget)
+
+        layout.addWidget(self.scroll_area)
         
         self.num_workers_input.textChanged.connect(self.update_worker_inputs)
         
@@ -72,13 +81,21 @@ class MainWindow(QMainWindow):
         self.worker_inputs = []
         for i in range(num_workers):
             identification_input = QLineEdit()
+            identification_input.setFixedWidth(150)
             working_dates_input = QLineEdit()
+            working_dates_input.setFixedWidth(150)
             percentage_shifts_input = QLineEdit()
+            percentage_shifts_input.setFixedWidth(150)
             group_input = QLineEdit()
+            group_input.setFixedWidth(150)
             position_incompatibility_input = QLineEdit()
+            position_incompatibility_input.setFixedWidth(150)
             group_incompatibility_input = QLineEdit()
+            group_incompatibility_input.setFixedWidth(150)
             obligatory_coverage_input = QLineEdit()
+            obligatory_coverage_input.setFixedWidth(150)
             unavailable_dates_input = QLineEdit()
+            unavailable_dates_input.setFixedWidth(150)
 
             self.worker_layout.addWidget(QLabel(f"Worker {i+1} Identification:"), i, 0)
             self.worker_layout.addWidget(identification_input, i, 1)
@@ -145,24 +162,29 @@ class MainWindow(QMainWindow):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as iCalendar", "", "iCalendar Files (*.ics);;All Files (*)", options=options)
         if filePath:
-            cal = Calendar()
-            for job, shifts in self.schedule.items():
-                for date, worker in shifts.items():
-                    event = Event()
-                    event.add('summary', f'Job {job}: {worker}')
-                    event.add('dtstart', datetime.strptime(date, "%d/%m/%Y"))
-                    event.add('dtend', datetime.strptime(date, "%d/%m/%Y"))
-                    cal.add_component(event)
-            with open(filePath, 'wb') as file:
-                file.write(cal.to_ical())
+            self.export_icalendar(filePath)
 
     def export_to_pdf(self):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as PDF", "", "PDF Files (*.pdf);;All Files (*)", options=options)
         if filePath:
-            export_schedule_to_pdf(self.schedule, filename=filePath)
+            export_schedule_to_pdf(self.schedule, filePath)
+
+    def export_icalendar(self, filePath):
+        cal = Calendar()
+        for job, shifts in self.schedule.items():
+            for date_str, worker_id in shifts.items():
+                date = datetime.strptime(date_str, "%d/%m/%Y")
+                event = Event()
+                event.add('summary', f'Shift for Job {job}')
+                event.add('dtstart', date)
+                event.add('dtend', date)
+                event.add('description', f'Worker: {worker_id}')
+                cal.add_component(event)
+        with open(filePath, 'wb') as f:
+            f.write(cal.to_ical())
 
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
-app.exec()
+sys.exit(app.exec())
