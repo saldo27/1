@@ -27,7 +27,8 @@ def generate_date_range(start_date, end_date):
         yield start_date + timedelta(n)
 
 def is_weekend(date):
-    return date.weekday() >= 5
+    # 4 represents Friday, 5 represents Saturday, and 6 represents Sunday
+    return date.weekday() >= 4
 
 def is_holiday(date_str, holidays_set):
     if isinstance(date_str, str) and date_str:  # Check if date_str is a non-empty string
