@@ -27,7 +27,6 @@ class PDFCalendar(FPDF):
         for week in month_days:
             x_start = self.get_x()
             y_start = self.get_y()
-            max_y = y_start
 
             for day in week:
                 if day == 0:
@@ -39,11 +38,9 @@ class PDFCalendar(FPDF):
                     # Split content into lines for vertical display
                     lines = cell_content.split('\n')
                     self.multi_cell(25, 10, "\n".join(lines), 1, 'C')
-                    max_y = max(max_y, self.get_y())
-                    self.set_xy(x_start + 25, y_start)
+                    self.set_xy(self.get_x() + 25, y_start)
 
-            self.set_y(max_y)
-            self.ln()
+            self.ln(40)  # Ensure moving to the next row after a week
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
