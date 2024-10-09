@@ -13,7 +13,7 @@ class PDFCalendar(FPDF):
         self.ln(10)
 
         # Create a table for the calendar
-        self.set_font('Arial', 'B', 8)
+        self.set_font('Arial', 'B', 7)  # Set font size to 7
         days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         for day in days:
             self.cell(25, 10, day, 1, 0, 'C')
@@ -21,7 +21,7 @@ class PDFCalendar(FPDF):
 
         cal = calendar.Calendar(firstweekday=0)
         month_days = cal.monthdayscalendar(year, month)
-        self.set_font('Arial', '', 8)
+        self.set_font('Arial', '', 7)  # Set font size to 7
 
         for week in month_days:
             for day in week:
@@ -29,10 +29,9 @@ class PDFCalendar(FPDF):
                     self.cell(25, 40, '', 1, 0, 'C')
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
-                    shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
-                    cell_content = f"{day}\n" + "\n".join(shifts)
-                    lines = cell_content.split('\n')
-                    self.multi_cell(25, 8, "\n".join(lines), 1, 'C')
+                    shifts = [worker for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
+                    cell_content = " ".join(shifts)
+                    self.cell(25, 40, cell_content, 1, 0, 'C')  # Remove day number and only show worker names
 
             self.ln()
 
@@ -40,7 +39,7 @@ class PDFCalendar(FPDF):
             if self.get_y() + 40 > self.page_break_trigger:
                 self.add_page()
                 self.set_y(self.t_margin)
-                self.set_font('Arial', 'B', 8)
+                self.set_font('Arial', 'B', 7)
                 for day in days:
                     self.cell(25, 10, day, 1, 0, 'C')
                 self.ln()
