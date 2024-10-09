@@ -38,7 +38,10 @@ class PDFCalendar(FPDF):
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     lines = cell_content.split('\n')
                     self.set_xy(x_start, y_start)  # Ensure correct positioning before writing
-                    self.multi_cell(25, 10, "\n".join(lines), 1, 'C')  # 5 rows of 10 height each
+                    for line in lines:
+                        self.multi_cell(25, 10, line, 1, 'C', False)  # 5 rows of 10 height each
+                        y_start += 10
+                        self.set_xy(x_start, y_start)
                     x_start += 25
                     self.set_xy(x_start, y_start)
                     max_y = max(max_y, self.get_y())
