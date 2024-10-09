@@ -42,7 +42,7 @@ class PDFCalendar(FPDF):
                         max_height = cell_height
 
             for cell_content in cells:
-                self.multi_cell(25, max_height, cell_content, border=1, align='C', ln=3, max_line_height=self.font_size)
+                self.multi_cell(25, max_height, cell_content, border=1, align='C')
             self.ln(max_height)
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
