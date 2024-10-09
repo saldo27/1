@@ -33,8 +33,6 @@ class PDFCalendar(FPDF):
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     self.multi_cell(25, 5, cell_content, border=1, align='C')
-                if day != week[-1]:  # Avoid creating a new cell for the last day in the week
-                    self.ln()
             self.ln()
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
