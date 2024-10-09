@@ -13,52 +13,27 @@ class PDFCalendar(FPDF):
         self.cell(0, 10, f'{calendar.month_name[month]} {year}', 0, 1, 'C')
         self.ln(10)
 
-    # Create a table for the calendar
-    self.set_font('Arial', 'B', 10)
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    for day in days:
-        self.cell(25, 10, day, 1, 0, 'C')
-    self.ln()
-
-    cal = calendar.Calendar(firstweekday=0)
-    month_days = cal.monthdayscalendar(year, month)
-    self.set_font('Arial', '', 10)
-
-    for week in month_days:
-        for day in week:
-            if day == 0:
-                self.cell(25, 20, '', 1, 0, 'C')
-            else:
-                date_str = datetime(year, month, day).strftime("%d/%m/%Y")
-                shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
-                cell_content = f"{day}\n" + "\n".join(shifts)
-                self.multi_cell(25, 20, cell_content, border=1, align='C')
-            self.ln(20)
+        # Create a table for the calendar
+        self.set_font('Arial', 'B', 10)
+        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        for day in days:
+            self.cell(25, 10, day, 1, 0, 'C')
+        self.ln()
 
         cal = calendar.Calendar(firstweekday=0)
         month_days = cal.monthdayscalendar(year, month)
         self.set_font('Arial', '', 10)
 
         for week in month_days:
-            max_height = 20  # Start with a base cell height
-            cells = []
             for day in week:
                 if day == 0:
-                    cells.append('')
+                    self.cell(25, 20, '', 1, 0, 'C')
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
-                    cells.append(cell_content)
-                    # Calculate the required height for the cell based on the number of lines
-                    num_lines = len(cell_content.split('\n'))
-                    cell_height = 5 * num_lines  # Approximate height based on number of lines
-                    if cell_height > max_height:
-                        max_height = cell_height
-
-            for cell_content in cells:
-                self.multi_cell(25, max_height, cell_content, border=1, align='C')
-            self.ln(max_height)
+                    self.multi_cell(25, 20, cell_content, border=1, align='C')
+            self.ln(20)
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
