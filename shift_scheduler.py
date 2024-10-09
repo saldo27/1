@@ -35,7 +35,7 @@ def is_holiday(date_str, holidays_set):
     else:
         return False
 
-def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, workers, override=False):
+def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=False):
     if isinstance(date, str) and date:  # Check if date is a non-empty string
         date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
 
@@ -75,14 +75,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         week_number = date.isocalendar()[1]
         if weekly_tracker[worker.identification][week_number] >= max_shifts_per_week:
             logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
-            return False
-
-        if job in worker.incompatible_job:
-            logging.debug(f"Worker {worker.identification} cannot work on job {job} due to job incompatibility.")
-            return False
-
-        if any(group in worker.group_incompatibility for group in [w.group for w in workers if w.identification == last_shift_date.get(worker.identification)]):
-            logging.debug(f"Worker {worker.identification} cannot work on {date} due to group incompatibility.")
             return False
 
         if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:
@@ -162,7 +154,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                 date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Trim spaces here
                 logging.debug(f"Trying to assign obligatory coverage shift for Worker {worker.identification} on {date} for jobs {jobs}")
                 for job in jobs:
-                    if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, workers):
+                    if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week):
                         assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                         logging.debug(f"Assigned obligatory coverage shift for Worker {worker.identification} on {date} for job {job}")
                         break
@@ -183,10 +175,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                 iteration_count = 0
 
                 while not assigned:
-                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, workers)]
+                    available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week)]
                     if not available_workers:
-                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, workers, override=True)]
-
+                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=True)]
                         if available_workers:
                             worker = available_workers[0]
                             break
