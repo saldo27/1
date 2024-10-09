@@ -44,6 +44,7 @@ class PDFCalendar(FPDF):
             self.set_y(max_y)
             self.ln()
 
+            # Check if the next row will fit on the page, if not, add a new page
             if self.get_y() + 40 > self.page_break_trigger:
                 self.add_page()
                 self.set_y(self.t_margin)
