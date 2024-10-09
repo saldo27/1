@@ -172,6 +172,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                 logging.debug(f"Processing job '{job}' on date {date_str}")
 
                 assigned = False
+                iteration_count = 0  # Initialize iteration_count
                 max_iterations = len(workers) * 2
 
                 while not assigned:
