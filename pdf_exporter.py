@@ -41,7 +41,7 @@ class PDFCalendar(FPDF):
                     self.multi_cell(25, 10, "\n".join(lines), 1, 'C')
                     x_end = self.get_x()
                     max_y = max(max_y, self.get_y())
-                    self.set_xy(x_end, y_start)
+                    self.set_xy(x_start + 25, y_start)
                 x_start += 25
 
             self.set_y(max_y)
