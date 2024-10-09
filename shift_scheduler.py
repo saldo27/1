@@ -159,7 +159,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                     continue  # Continue if inner loop wasn't broken
                 break  # Exit outer loop once a shift is assigned
 
-    # Assign remaining shifts
+     # Assign remaining shifts
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             date_str = date.strftime("%d/%m/%Y")
@@ -181,6 +181,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                             logging.error(f"No available workers for job {job} on {date_str}.")
                             assigned = True  # Exit the loop if no workers are available
                             break
+                    # Prefer workers with the longest gap since their last shift
                     worker = min(available_workers, key=lambda w: (job_count[w.identification][job], (date - last_shift_date[w.identification]).days * -1, w.shift_quota, w.percentage_shifts))
                     assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                     logging.debug(f"Assigned shift for Worker {worker.identification} on {date} for job {job}")
