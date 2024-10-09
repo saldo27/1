@@ -141,6 +141,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     # Assign obligatory coverage shifts first
     for worker in workers:
+        # Default work_dates to work_periods if blank
+        if not worker.work_dates:
+            worker.work_dates = valid_work_periods
+
         for date_str in worker.obligatory_coverage:
             if date_str.strip():  # Ensure non-empty strings
                 date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Trim spaces here
