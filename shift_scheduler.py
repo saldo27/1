@@ -163,7 +163,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                     continue  # Continue if inner loop wasn't broken
                 break  # Exit outer loop once a shift is assigned
 
-    # Assign remaining shifts
+# Assign remaining shifts
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             date_str = date.strftime("%d/%m/%Y")
