@@ -1,9 +1,6 @@
 import logging
 from datetime import timedelta, datetime
 from collections import defaultdict
-from models import Shift
-from icalendar import Calendar, Event
-import heapq
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -171,3 +168,14 @@ def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
+
+if __name__ == "__main__":
+    # Example input data
+    work_periods = ["01/10/2024-31/10/2024"]
+    holidays = ["09/10/2024"]
+    jobs = ["A", "B", "C"]
+    workers = [
+        Worker("W1", [], "100", "G1", [], [], ["01/10/2024"], []),
+        Worker("W2", [], "100", "G1", [], [], ["02/10/2024"], [])
+    ]
+    schedule_shifts(work_periods, holidays, jobs, workers)
