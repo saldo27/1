@@ -43,6 +43,14 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
         logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
         return False
 
+    # Check if the date is within the worker's working dates range
+    for start_date, end_date in worker.work_dates:
+        if start_date <= date <= end_date:
+            break
+    else:
+        logging.debug(f"Worker {worker.identification} cannot work on {date} because it is outside their working dates.")
+        return False
+
     # Adjust the min_distance based on the worker's percentage of shifts
     adjusted_min_distance = max(1, int(min_distance * (100 / worker.percentage_shifts)))
 
@@ -74,7 +82,6 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             return False
 
     return True
-
 def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week):
     # Adjust the min_distance based on the worker's percentage of shifts
     adjusted_min_distance = max(1, int(min_distance * (worker.percentage_shifts / 100.0)))
