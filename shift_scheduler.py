@@ -77,6 +77,14 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
             logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
             return False
 
+        if job in worker.incompatible_job:
+            logging.debug(f"Worker {worker.identification} cannot work on job {job} due to job incompatibility.")
+            return False
+
+        if any(group in worker.group_incompatibility for group in [worker.group for worker in workers if worker.identification == last_shift_date.get(worker.identification)]):
+            logging.debug(f"Worker {worker.identification} cannot work on {date} due to group incompatibility.")
+            return False
+
         if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_date[worker.identification]).days == 1:
             logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
             return False
