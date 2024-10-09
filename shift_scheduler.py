@@ -5,15 +5,15 @@ from collections import defaultdict
 logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
-    def __init__(self, identification, work_dates, percentage, group, incompatible_job, group_incompatibility, obligatory_coverage, day_off):
+    def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, day_off=None):
         self.identification = identification
-        self.work_dates = work_dates
+        self.work_dates = work_dates if work_dates else []
         self.percentage_shifts = float(percentage) if percentage else 100.0
-        self.group = group
-        self.incompatible_job = incompatible_job
-        self.group_incompatibility = group_incompatibility
-        self.obligatory_coverage = obligatory_coverage  # Ensure this attribute is initialized
-        self.day_off = day_off
+        self.group = group if group else '1'
+        self.incompatible_job = incompatible_job if incompatible_job else []
+        self.group_incompatibility = group_incompatibility if group_incompatibility else []
+        self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
+        self.day_off = day_off if day_off else []
 
 def calculate_shift_quota(workers, total_shifts, total_weeks):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     holidays = ["09/10/2024"]
     jobs = ["A", "B", "C"]
     workers = [
-        Worker("W1", [], "100", "G1", [], [], ["01/10/2024"], []),
-        Worker("W2", [], "100", "G1", [], [], ["02/10/2024"], [])
+        Worker("W1", [], "100", "1", [], [], ["01/10/2024"], []),
+        Worker("W2", [], "100", "1", [], [], ["02/10/2024"], [])
     ]
     schedule_shifts(work_periods, holidays, jobs, workers)
