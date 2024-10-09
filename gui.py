@@ -126,37 +126,37 @@ class MainWindow(QMainWindow):
             })
 
     def schedule_shifts(self):
-        # Get inputs
-        work_periods = self.work_periods_input.text().split(',')
-        holidays = self.holidays_input.text().split(',')
-        jobs = self.jobs_input.text().split(',')
-        num_workers = int(self.num_workers_input.text())
-        min_distance = int(self.min_distance_input.text())
-        max_shifts_per_week = int(self.max_shifts_per_week_input.text())
-        # Create workers list from user input
-        workers = [
-            Worker(
-                input['identification'].text(),
-                input['working_dates'].text().split(','),  # Assuming working_dates is a list of date ranges
-                float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
-                int(input['group'].text() or 0),
-                input['position_incompatibility'].text().split(','),  # Assuming it's a list of incompatible jobs
-                input['group_incompatibility'].text().split(','),  # Assuming it's a list of incompatible groups
-                input['obligatory_coverage'].text().split(','),  # Assuming it's a list of dates
-                input['unavailable_dates'].text().split(',')  # day_off attribute
-            )
-            for input in self.worker_inputs
-        ]
-        # Schedule shifts
-        schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
-        # Display the schedule
-        output = ""
-        self.schedule = schedule  # Save the schedule for exporting
-        for job, shifts in schedule.items():
-            output += f"Job {job}:\n"
-            for date, worker in shifts.items():
-                output += f"  {date}: {worker}\n"
-        self.output_display.setText(output)
+    # Get inputs
+    work_periods = self.work_periods_input.text().split(',')
+    holidays = self.holidays_input.text().split(',')
+    jobs = self.jobs_input.text().split(',')
+    num_workers = int(self.num_workers_input.text())
+    min_distance = int(self.min_distance_input.text())
+    max_shifts_per_week = int(self.max_shifts_per_week_input.text())
+    # Create workers list from user input
+    workers = [
+        Worker(
+            input['identification'].text(),
+            [period.strip() for period in input['working_dates'].text().split(',')] if input['working_dates'].text() else [],
+            float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
+            input['group'].text() or '1',
+            input['position_incompatibility'].text().split(',') if input['position_incompatibility'].text() else [],
+            input['group_incompatibility'].text().split(',') if input['group_incompatibility'].text() else [],
+            [date.strip() for date in input['obligatory_coverage'].text().split(',')] if input['obligatory_coverage'].text() else [],
+            [date.strip() for date in input['unavailable_dates'].text().split(',')] if input['unavailable_dates'].text() else []
+        )
+        for input in self.worker_inputs
+    ]
+    # Schedule shifts
+    schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+    # Display the schedule
+    output = ""
+    self.schedule = schedule  # Save the schedule for exporting
+    for job, shifts in schedule.items():
+        output += f"Job {job}:\n"
+        for date, worker in shifts.items():
+            output += f"  {date}: {worker}\n"
+    self.output_display.setText(output)
 
     def export_to_ical(self):
         options = QFileDialog.Options()
