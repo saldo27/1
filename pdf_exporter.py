@@ -31,16 +31,17 @@ class PDFCalendar(FPDF):
             for day in week:
                 if day == 0:
                     self.cell(25, 40, '', 1, 0, 'C')
+                    x_start += 25
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
                     lines = cell_content.split('\n')
+                    self.set_xy(x_start, y_start)  # Ensure correct positioning before writing
                     self.multi_cell(25, 10, "\n".join(lines), 1, 'C')
                     x_start += 25
                     self.set_xy(x_start, y_start)
                     max_y = max(max_y, self.get_y())
-                x_start += 25
 
             self.set_y(max_y)
             self.ln()
