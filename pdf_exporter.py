@@ -27,13 +27,13 @@ class PDFCalendar(FPDF):
         for week in month_days:
             for day in week:
                 if day == 0:
-                    self.cell(25, 20, '', 1, 0, 'C')
+                    self.cell(25, 40, '', 1, 0, 'C')
                 else:
                     date_str = datetime(year, month, day).strftime("%d/%m/%Y")
                     shifts = [f"{job}: {worker}" for job, dates in schedule.items() for d, worker in dates.items() if d == date_str]
                     cell_content = f"{day}\n" + "\n".join(shifts)
-                    self.multi_cell(25, 20, cell_content, border=1, align='C')
-            self.ln(20)
+                    self.multi_cell(25, 5, cell_content, border=1, align='C')
+            self.ln()
 
 def export_schedule_to_pdf(schedule, filename='shift_schedule.pdf'):
     pdf = PDFCalendar()
