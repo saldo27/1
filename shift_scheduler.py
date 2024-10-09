@@ -171,8 +171,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                 logging.debug(f"Processing job '{job}' on date {date_str}")
 
                 assigned = False
-                max_iterations = len(workers) * 2  # Prevent infinite loop
-                iteration_count = 0
+                max_iterations = len(workers) * 2
 
                 while not assigned:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week)]
@@ -183,9 +182,9 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                             break
                         else:
                             logging.error(f"No available workers for job {job} on {date_str}.")
-                            assigned = True  # Exit the loop if no workers are available
+                            assigned = True
                             break
-                    # Prefer workers with the longest gap since their last shift
+
                     worker = min(available_workers, key=lambda w: ((date - last_shift_date[w.identification]).days, w.shift_quota, w.percentage_shifts))
                     assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                     logging.debug(f"Assigned shift for Worker {worker.identification} on {date} for job {job}")
@@ -194,7 +193,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                     iteration_count += 1
                     if iteration_count >= max_iterations:
                         logging.error(f"Exceeded maximum iterations for job {job} on {date_str}. Exiting to prevent infinite loop.")
-                        assigned = True  # Exit the loop to prevent infinite loop
+                        assigned = True
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
