@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class Worker:
-   def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, day_off=None, unavailable_dates=None):
+    def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, day_off=None, unavailable_dates=None):
         self.identification = identification
         self.work_dates = work_dates if work_dates else []
         self.percentage_shifts = float(percentage) if percentage else 100.0
