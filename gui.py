@@ -38,9 +38,9 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'):"))
         layout.addWidget(self.work_periods_input)
-        layout.addWidget(QLabel("Enter holidays (comma-separated, e.g., '05/10/2024'):"))
+        layout.addWidget(QLabel("Enter festivos (comma-separated, e.g., '05/10/2024'):"))
         layout.addWidget(self.holidays_input)
-        layout.addWidget(QLabel("Enter jobs (comma-separated, e.g., 'A,B,C'):"))
+        layout.addWidget(QLabel("Enter workstations (comma-separated, e.g., 'A,B,C'):"))
         layout.addWidget(self.jobs_input)
         layout.addWidget(QLabel("Enter minimum distance between work shifts (in days):"))
         layout.addWidget(self.min_distance_input)
@@ -116,7 +116,6 @@ class MainWindow(QMainWindow):
         num_workers = int(self.num_workers_input.text())
         min_distance = int(self.min_distance_input.text())
         max_shifts_per_week = int(self.max_shifts_per_week_input.text())
-        previous_shifts_input = self.previous_shifts_input.text().split(',')
         # Create workers list from user input
         workers = [
             Worker(
