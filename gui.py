@@ -130,8 +130,6 @@ class MainWindow(QMainWindow):
             )
             for input in self.worker_inputs
         ]
-        # Convert previous shifts input
-        previous_shifts = [datetime.strptime(shift.strip(), "%d/%m/%Y") for shift in previous_shifts_input if shift]
         # Schedule shifts
         schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week, previous_shifts)
         # Display the schedule
