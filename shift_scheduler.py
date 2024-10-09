@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta, datetime
 from collections import defaultdict
+import csv
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -82,6 +83,21 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
         weekend_tracker[worker.identification] += 1
     worker.shift_quota -= 1
     logging.debug(f"Worker {worker.identification} assigned to job {job} on {date.strftime('%d/%m/%Y')}. Updated schedule: {schedule[job][date.strftime('%d/%m/%Y')]}")
+
+def prepare_breakdown(schedule):
+    breakdown = defaultdict(list)
+    for job, shifts in schedule.items():
+        for date, worker_id in shifts.items():
+            breakdown[worker_id].append((date, job))
+    return breakdown
+
+def export_breakdown(breakdown, filename="worker_shift_breakdown.csv"):
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Worker ID", "Date", "Job"])
+        for worker_id, shifts in breakdown.items():
+            for date, job in shifts:
+                writer.writerow([worker_id, date, job])
 
 def schedule_shifts(work_periods, holidays, jobs, workers, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
@@ -173,4 +189,6 @@ if __name__ == "__main__":
         Worker("W1", [], "100", "1", [], [], ["01/10/2024"], []),
         Worker("W2", [], "100", "1", [], [], ["02/10/2024"], [])
     ]
-    schedule_shifts(work_periods, holidays, jobs, workers)
+    schedule = schedule_shifts(work_periods, holidays, jobs, workers)
+    breakdown = prepare_breakdown(schedule)
+    export_breakdown(breakdown)
