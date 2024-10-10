@@ -84,7 +84,7 @@ def can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_se
 
     return True
 
-def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week):
+def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week, last_job_assigned):
     # Adjust the min_distance based on the worker's percentage of shifts
     adjusted_min_distance = max(1, int(min_distance * (worker.percentage_shifts / 100.0)))
     
@@ -96,23 +96,8 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend
     if is_weekend(date) or is_holiday(date.strftime("%d/%m/%Y"), holidays_set):
         weekend_tracker[worker.identification] += 1
     worker.shift_quota -= 1
+    last_job_assigned[worker.identification] = job  # Update last assigned job
     logging.debug(f"Worker {worker.identification} assigned to job {job} on {date.strftime('%d/%m/%Y')}. Updated schedule: {schedule[job][date.strftime('%d/%m/%Y')]}")
-
-
-def prepare_breakdown(schedule):
-    breakdown = defaultdict(list)
-    for job, shifts in schedule.items():
-        for date, worker_id in shifts.items():
-            breakdown[worker_id].append((date, job))
-    return breakdown
-
-def export_breakdown(breakdown, filename="worker_shift_breakdown.csv"):
-    with open(filename, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Worker ID", "Date", "Job"])
-        for worker_id, shifts in breakdown.items():
-            for date, job in shifts:
-                writer.writerow([worker_id, date, job])
 
 def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week, previous_shifts=[]):
     logging.debug(f"Workers: {workers}")
@@ -127,6 +112,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
     last_shift_date = {worker.identification: past_date for worker in workers}
     job_count = {worker.identification: {job: 0 for job in jobs} for worker in workers}
     weekly_tracker = defaultdict(lambda: defaultdict(int))
+    last_job_assigned = {worker.identification: None for worker in workers}  # Initialize last job assigned
 
     valid_work_periods = []
     for period in work_periods:
@@ -156,7 +142,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                 logging.debug(f"Trying to assign obligatory coverage shift for Worker {worker.identification} on {date} for jobs {jobs}")
                 for job in jobs:
                     if can_work_on_date(worker, date, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week):
-                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
+                        assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week, last_job_assigned)
                         logging.debug(f"Assigned obligatory coverage shift for Worker {worker.identification} on {date} for job {job}")
                         break
                 else:
@@ -177,6 +163,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
                 while not assigned:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week)]
+                    available_workers = [worker for worker in available_workers if last_job_assigned[worker.identification] != job]  # Filter out workers who worked the same job last time
+
                     if not available_workers:
                         available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_date, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=True)]
                         if available_workers:
@@ -189,7 +177,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
                     # Maximize the gap between shifts
                     worker = max(available_workers, key=lambda w: ((date - last_shift_date[w.identification]).days, w.shift_quota, w.percentage_shifts))
-                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
+                    assign_worker_to_shift(worker, date, job, schedule, last_shift_date, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week, last_job_assigned)
                     logging.debug(f"Assigned shift for Worker {worker.identification} on {date} for job {job}")
                     assigned = True
 
@@ -200,7 +188,22 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
-    
+
+def prepare_breakdown(schedule):
+    breakdown = defaultdict(list)
+    for job, shifts in schedule.items():
+        for date, worker_id in shifts.items():
+            breakdown[worker_id].append((date, job))
+    return breakdown
+
+def export_breakdown(breakdown, filename="worker_shift_breakdown.csv"):
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Worker ID", "Date", "Job"])
+        for worker_id, shifts in breakdown.items():
+            for date, job in shifts:
+                writer.writerow([worker_id, date, job])
+
 if __name__ == "__main__":
     # User input for the required parameters
     work_periods = input("Enter work periods (e.g., 01/10/2024-31/10/2024, separated by commas): ").split(',')
