@@ -265,7 +265,7 @@ if __name__ == "__main__":
         print(f"Worker {worker_id} unavailable dates: {worker.unavailable_dates}")
         workers.append(worker)
 
-    def validate_schedule(schedule, workers):
+def validate_schedule(schedule, workers):
     """Validate that no worker is scheduled on their unavailable dates."""
     for job, assignments in schedule.items():
         for date_str, worker_id in assignments.items():
