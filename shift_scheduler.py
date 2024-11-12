@@ -50,13 +50,13 @@ def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holida
                 assigned_worker_id = job_schedule[date_str]
                 assigned_worker = next((w for w in workers if w.identification == assigned_worker_id), None)
                 if assigned_worker:
-                    logging.debug(f"Assigned worker {assigned_worker.identification} found for job on {date}")
+                    logging.debug(f"Assigned worker {assigned_worker.identification} found for job on {date_str}")
                     if any(group == assigned_worker.group for group in worker.group_incompatibility):
-                        logging.debug(f"Worker {worker.identification} cannot work on {date} due to group incompatibility with worker {assigned_worker.identification}.")
+                        logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to group incompatibility with worker {assigned_worker.identification}.")
                         return False
 
     if date_str in [day.strip() for day in worker.unavailable_dates if day]:
-        logging.debug(f"Worker {worker.identification} cannot work on {date} due to unavailability.")
+        logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to unavailability.")
         return False
 
     # Check if the date is within the worker's working dates range
@@ -64,7 +64,7 @@ def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holida
         if start_date <= date <= end_date:
             break
     else:
-        logging.debug(f"Worker {worker.identification} cannot work on {date} because it is outside their working dates.")
+        logging.debug(f"Worker {worker.identification} cannot work on {date_str} because it is outside their working dates.")
         return False
 
     if not override:
@@ -75,28 +75,28 @@ def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holida
         if last_shift_dates[worker.identification]:
             last_date = last_shift_dates[worker.identification][-1]
             days_diff = (date - last_date).days
-            logging.debug(f"Worker {worker.identification} last worked on {last_date}, {days_diff} days ago.")
+            logging.debug(f"Worker {worker.identification} last worked on {last_date.strftime('%d/%m/%Y')}, {days_diff} days ago.")
             if days_diff < adjusted_min_distance:
-                logging.debug(f"Worker {worker.identification} cannot work on {date} due to adjusted minimum distance.")
+                logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to adjusted minimum distance.")
                 return False
             if days_diff in {7, 14, 21, 28}:
-                logging.debug(f"Worker {worker.identification} cannot work on {date} due to 7, 14, 21 or 28 days constraint.")
+                logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to 7, 14, 21 or 28 days constraint.")
                 return False
             if last_date.date() == date.date():
-                logging.debug(f"Worker {worker.identification} cannot work on {date} because they already have a shift on this day.")
+                logging.debug(f"Worker {worker.identification} cannot work on {date_str} because they already have a shift on this day.")
 
         if is_weekend(date) or is_holiday(date_str, holidays_set):
             if weekend_tracker[worker.identification] >= 4:
-                logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekend/holiday limit.")
+                logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to weekend/holiday limit.")
                 return False
 
         week_number = date.isocalendar()[1]
         if weekly_tracker[worker.identification][week_number] >= max_shifts_per_week:
-            logging.debug(f"Worker {worker.identification} cannot work on {date} due to weekly quota limit.")
+            logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to weekly quota limit.")
             return False
 
         if job in job_count[worker.identification] and job_count[worker.identification][job] > 0 and (date - last_shift_dates[worker.identification][-1]).days == 1:
-            logging.debug(f"Worker {worker.identification} cannot work on {date} due to job repetition limit.")
+            logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to job repetition limit.")
             return False
 
     return True
@@ -202,6 +202,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
+
 
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
