@@ -16,6 +16,11 @@ class Worker:
         self.incompatible_job = incompatible_job if incompatible_job else []
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
         self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
+        self.unavailable_dates = [date.strip() for date in (unavailable_dates or []) if date.strip()]
+        
+        # Debug print when worker is created
+        if self.unavailable_dates:
+            logging.debug(f"Created Worker {self.identification} with unavailable dates: {self.unavailable_dates}")
         
         # Standardize unavailable dates format
         if unavailable_dates:
@@ -57,10 +62,9 @@ def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holida
         formatted_date_str = date.strftime("%d/%m/%Y")  # Standardize date format
         
         # Check unavailable dates first
-        if any(formatted_date_str == datetime.strptime(ud.strip(), "%d/%m/%Y").strftime("%d/%m/%Y") 
-               for ud in worker.unavailable_dates if ud.strip()):
-            logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to unavailability.")
-            return False
+        if date_str in worker.unavailable_dates:
+        logging.debug(f"Worker {worker.identification} is unavailable on {date_str}")
+        return False
 
     if date_str in [day.strip() for day in worker.unavailable_dates if day]:
         logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to unavailability.")
@@ -239,43 +243,49 @@ if __name__ == "__main__":
     max_shifts_per_week = int(input("Enter maximum shifts that can be assigned per week: "))
     num_workers = int(input("Enter number of available workers: "))
 
+    # Create workers list with unavailable dates
     workers = []
     for i in range(num_workers):
         worker_id = f"W{i+1}"
-        print(f"\nEnter details for Worker {worker_id}")
-        while True:
-            try:
-                unavailable_dates_input = input(f"Enter unavailable dates for Worker {worker_id} (DD/MM/YYYY, separated by commas) or press Enter if none: ")
-                if not unavailable_dates_input.strip():
-                    unavailable_dates = []
-                    break
-                
-                unavailable_dates = []
-                for date in unavailable_dates_input.split(','):
-                    if date.strip():
-                        # Validate and standardize date format
-                        formatted_date = datetime.strptime(date.strip(), "%d/%m/%Y").strftime("%d/%m/%Y")
-                        unavailable_dates.append(formatted_date)
-                break
-            except ValueError as e:
-                print(f"Invalid date format. Please use DD/MM/YYYY format. Error: {e}")
+        print(f"\nSetting up Worker {worker_id}")
+        unavailable_dates_str = input(f"Enter unavailable dates for Worker {worker_id} (DD/MM/YYYY, separated by commas) or press Enter if none: ").strip()
         
-        worker = Worker(worker_id, unavailable_dates=unavailable_dates)
+        # Process unavailable dates
+        unavailable_dates = []
+        if unavailable_dates_str:
+            dates = unavailable_dates_str.split(',')
+            for date in dates:
+                date = date.strip()
+                try:
+                    # Validate date format
+                    datetime.strptime(date, "%d/%m/%Y")
+                    unavailable_dates.append(date)
+                except ValueError:
+                    print(f"Warning: Invalid date format '{date}'. Skipping this date.")
+        
+        # Create worker with unavailable dates
+        worker = Worker(
+            identification=worker_id,
+            unavailable_dates=unavailable_dates
+        )
         workers.append(worker)
-        print(f"Worker {worker_id} unavailable dates: {worker.unavailable_dates}")
-        workers.append(worker)
+        print(f"Created {worker_id} with unavailable dates: {worker.unavailable_dates}")
 
-def validate_schedule(schedule, workers):
-    """Validate that no worker is scheduled on their unavailable dates."""
-    for job, assignments in schedule.items():
-        for date_str, worker_id in assignments.items():
-            worker = next(w for w in workers if w.identification == worker_id)
-            if date_str in worker.unavailable_dates:
-                logging.error(f"ERROR: Worker {worker_id} was scheduled on {date_str} despite being unavailable!")
-                return False
-    return True
-    
+    # Debug print to verify unavailable dates are stored
+    print("\nVerifying worker unavailable dates:")
+    for worker in workers:
+        print(f"Worker {worker.identification} unavailable dates: {worker.unavailable_dates}")
+
     schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+    
+    # Verify no worker is scheduled on their unavailable dates
+    print("\nChecking schedule against unavailable dates:")
+    for job, assignments in schedule.items():
+        for date, worker_id in assignments.items():
+            worker = next(w for w in workers if w.identification == worker_id)
+            if date in worker.unavailable_dates:
+                print(f"ERROR: Worker {worker_id} was scheduled on {date} despite being unavailable!")
+
     breakdown = prepare_breakdown(schedule)
-    print("\nSchedule Breakdown:")
+    print("\nFinal Schedule:")
     print(export_breakdown(breakdown))
