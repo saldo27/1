@@ -11,13 +11,13 @@ class Worker:
         self.group = group if group else '1'
         self.incompatible_job = incompatible_job if incompatible_job else []
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
-        self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
+        self.obligatory_coverage = [datetime.strptime(date.strip(), "%d/%m/%Y") for date in obligatory_coverage] if obligatory_coverage else []
         self.day_off = day_off if day_off else []
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
 
         self.shift_quota = 0
         self.weekly_shift_quota = 0
-        self.has_exception = False  # Add this line to track exceptions
+        self.has_exception = False  # Add this line to track exception
 
 
     def __lt__(self, other):
