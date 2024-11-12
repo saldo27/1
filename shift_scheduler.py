@@ -119,6 +119,10 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
     logging.debug(f"Holidays: {holidays}")
     logging.debug(f"Jobs: {jobs}")
 
+    # Print unavailable dates for each worker
+    for worker in workers:
+        print(f"Worker {worker.identification} unavailable dates: {worker.unavailable_dates}")
+
     schedule = {job: {} for job in jobs}
     holidays_set = set(holidays)
     weekend_tracker = {worker.identification: 0 for worker in workers}
