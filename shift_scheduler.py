@@ -202,7 +202,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
-    
+
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
