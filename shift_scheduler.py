@@ -152,6 +152,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
             if isinstance(date_str, str) and date_str.strip():
                 logging.debug(f"Trying to assign obligatory coverage shift for Worker {worker.identification} on {date_str} for jobs {jobs}")
                 for job in jobs:
+                    # Consider the minimum distance constraint for obligatory shifts
                     if can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, schedule=schedule, workers=workers):
                         assign_worker_to_shift(worker, date_str, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                         last_assigned_job[worker.identification] = job
@@ -177,10 +178,8 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                 while not assigned and iteration_count < max_iterations:
                     available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, schedule=schedule, workers=workers)]
                     if not available_workers:
-                        available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=True, schedule=schedule, workers=workers)]
-                        if not available_workers:
-                            logging.error(f"No available workers for job {job} on {date_str}. Stopping assignment.")
-                            return schedule
+                        logging.error(f"No available workers for job {job} on {date_str}. Stopping assignment.")
+                        return schedule
 
                     worker = max(available_workers, key=lambda w: (
                         (datetime.strptime(date_str.strip(), "%d/%m/%Y") - last_shift_dates[w.identification][-1]).days if last_shift_dates[w.identification] else float('inf'),
