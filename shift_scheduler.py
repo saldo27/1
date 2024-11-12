@@ -8,7 +8,7 @@ import csv
 logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
-    def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, day_off=None):
+    def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, unavailable_dates=None):
         self.identification = identification
         self.work_dates = work_dates if work_dates else []
         self.percentage_shifts = float(percentage) if percentage else 100.0
@@ -16,7 +16,7 @@ class Worker:
         self.incompatible_job = incompatible_job if incompatible_job else []
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
         self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
-        self.day_off = day_off if day_off else []
+        self.unavailable_dates = unavailable_dates if unavailable_dates else []
 
 def calculate_shift_quota(workers, total_days, jobs_per_day):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
