@@ -181,12 +181,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                             return schedule
 
                     worker = max(available_workers, key=lambda w: (
-                        (datetime.strptime(date_str.strip(), "%d/%m/%Y") - last_shift_dates[w.identification][-1]).days if last_shift_dates[w.identification] else float('inf'),
+                        (datetime.strptime(date_str.strip(), "%d/%m/%Y") - last_shift_dates[worker.identification][-1]).days if last_shift_dates[w.identification] else float('inf'),
                         w.shift_quota,
                         w.percentage_shifts,
-                        last_assigned_job[w.identification] != job,
-                        last_assigned_day[w.identification] != datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday(),
-                        not day_rotation_tracker[w.identification][datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()]
+                        last_assigned_job[worker.identification] != job,
+                        last_assigned_day[worker.identification] != datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday(),
+                        not day_rotation_tracker[worker.identification][datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()]
                     ))
                     assign_worker_to_shift(worker, date_str, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                     last_assigned_job[worker.identification] = job
@@ -202,7 +202,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
-
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
