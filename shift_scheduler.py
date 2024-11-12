@@ -143,6 +143,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
     jobs_per_day = len(jobs)
     calculate_shift_quota(workers, total_days, jobs_per_day)
 
+    # First, assign obligatory coverage shifts
     for worker in workers:
         if not worker.work_dates:
             worker.work_dates = valid_work_periods
@@ -162,6 +163,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                     logging.debug(f"Worker {worker.identification} cannot be assigned for obligatory coverage on {date_str} for any job.")
                     continue
 
+    # Continue with the rest of the scheduling logic
     for start_date, end_date in valid_work_periods:
         for date in generate_date_range(start_date, end_date):
             date_str = date.strftime("%d/%m/%Y")
@@ -181,12 +183,12 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                             return schedule
 
                     worker = max(available_workers, key=lambda w: (
-                        (datetime.strptime(date_str.strip(), "%d/%m/%Y") - last_shift_dates[worker.identification][-1]).days if last_shift_dates[w.identification] else float('inf'),
+                        (datetime.strptime(date_str.strip(), "%d/%m/%Y") - last_shift_dates[w.identification][-1]).days if last_shift_dates[w.identification] else float('inf'),
                         w.shift_quota,
                         w.percentage_shifts,
-                        last_assigned_job[worker.identification] != job,
-                        last_assigned_day[worker.identification] != datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday(),
-                        not day_rotation_tracker[worker.identification][datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()]
+                        last_assigned_job[w.identification] != job,
+                        last_assigned_day[w.identification] != datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday(),
+                        not day_rotation_tracker[w.identification][datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()]
                     ))
                     assign_worker_to_shift(worker, date_str, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                     last_assigned_job[worker.identification] = job
@@ -202,6 +204,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
+
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
