@@ -148,7 +148,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
             worker.work_dates = valid_work_periods
 
         for date_str in worker.obligatory_coverage:
-            if date_str.strip():
+            if isinstance(date_str, str) and date_str.strip():
                 logging.debug(f"Trying to assign obligatory coverage shift for Worker {worker.identification} on {date_str} for jobs {jobs}")
                 for job in jobs:
                     if can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, schedule=schedule, workers=workers):
@@ -202,7 +202,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
-
+    
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
