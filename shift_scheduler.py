@@ -232,9 +232,37 @@ if __name__ == "__main__":
     max_shifts_per_week = int(input("Enter maximum shifts that can be assigned per week: "))
     num_workers = int(input("Enter number of available workers: "))
 
-    # Example worker data, replace with actual data as needed
-    workers = [Worker(f"W{i+1}") for i in range(num_workers)]
+    # Create workers with their unavailable dates
+    workers = []
+    for i in range(num_workers):
+        worker_id = f"W{i+1}"
+        print(f"\nEnter details for Worker {worker_id}:")
+        
+        # Get unavailable dates
+        while True:
+            try:
+                unavailable_dates_input = input(f"Enter unavailable dates for {worker_id} (DD/MM/YYYY, separated by commas) or press Enter if none: ")
+                if not unavailable_dates_input.strip():
+                    unavailable_dates = []
+                    break
+                    
+                unavailable_dates = [date.strip() for date in unavailable_dates_input.split(',') if date.strip()]
+                
+                # Validate date format
+                for date in unavailable_dates:
+                    datetime.strptime(date, "%d/%m/%Y")
+                break
+            except ValueError:
+                print("Invalid date format. Please use DD/MM/YYYY format.")
+        
+        # Create worker with unavailable dates
+        worker = Worker(
+            identification=worker_id,
+            unavailable_dates=unavailable_dates
+        )
+        workers.append(worker)
 
     schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
     breakdown = prepare_breakdown(schedule)
-    export_breakdown(breakdown)
+    print("\nSchedule Breakdown:")
+    print(export_breakdown(breakdown))
