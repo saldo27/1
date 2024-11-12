@@ -193,7 +193,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                     assign_worker_to_shift(worker, date_str, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                     last_assigned_job[worker.identification] = job
                     last_assigned_day[worker.identification] = datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()
-                    day_rotation_tracker[worker.identification][datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()] = True
+                    day_rotation_tracker[w.identification][datetime.strptime(date_str.strip(), "%d/%m/%Y").weekday()] = True
                     logging.debug(f"Assigned shift for Worker {worker.identification} on {date_str} for job {job}")
                     assigned = True
 
