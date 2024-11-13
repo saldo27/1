@@ -59,15 +59,22 @@ def is_holiday(date_str, holidays_set):
 def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=False, schedule=None, workers=None):
     if isinstance(date_str, str) and date_str:  # Check if date is a non-empty string
         date = datetime.strptime(date_str.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
-        formatted_date_str = date.strftime("%d/%m/%Y")  # Standardize date format
-        
-        # Check unavailable dates first
-        if date_str in worker.unavailable_dates:
-        logging.debug(f"Worker {worker.identification} is unavailable on {date_str}")
-        return False
 
+    # Check for group incompatibility
+    if schedule and workers:
+        for job_schedule in schedule.values():
+            if date_str in job_schedule:
+                assigned_worker_id = job_schedule[date_str]
+                assigned_worker = next((w for w in workers if w.identification == assigned_worker_id), None)
+                if assigned_worker:
+                    logging.debug(f"Assigned worker {assigned_worker.identification} found for job on {date_str}")
+                    if any(group == assigned_worker.group for group in worker.group_incompatibility):
+                        logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to group incompatibility with worker {assigned_worker.identification}.")
+                        return False
+
+    # Check unavailable dates first - this is the fixed indentation
     if date_str in [day.strip() for day in worker.unavailable_dates if day]:
-        logging.debug(f"Worker {worker.identification} cannot work on {date_str} due to unavailability.")
+        logging.debug(f"Worker {worker.identification} is unavailable on {date_str}")
         return False
 
     # Check if the date is within the worker's working dates range
@@ -95,6 +102,7 @@ def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holida
                 return False
             if last_date.date() == date.date():
                 logging.debug(f"Worker {worker.identification} cannot work on {date_str} because they already have a shift on this day.")
+                return False
 
         if is_weekend(date) or is_holiday(date_str, holidays_set):
             if weekend_tracker[worker.identification] >= 4:
@@ -111,7 +119,6 @@ def can_work_on_date(worker, date_str, last_shift_dates, weekend_tracker, holida
             return False
 
     return True
-
 def assign_worker_to_shift(worker, date_str, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week):
     date = datetime.strptime(date_str.strip(), "%d/%m/%Y")
     logging.debug(f"Assigning worker {worker.identification} to job {job} on {date_str}")
