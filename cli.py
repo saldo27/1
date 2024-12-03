@@ -17,7 +17,7 @@ def run_cli():
         last_shift_dates = defaultdict(list)
         job_count = defaultdict(lambda: defaultdict(int))
         weekly_tracker = defaultdict(lambda: defaultdict(int))
-        workers = import_workers_from_csv(csv_file)
+        workers = import_workers_from_csv(csv_file, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
     else:
         print("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'): ")
         work_periods_input = input().split(',')
