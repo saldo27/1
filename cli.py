@@ -168,10 +168,10 @@ class MainWindow(QMainWindow):
         # Display the schedule
         output = ""
         self.schedule = schedule  # Save the schedule for exporting
-            for job, shifts in schedule.items():
+        for job, shifts in schedule.items():
                 output += f"Job {job}:\n"
-                for date, worker in shifts.items():
-                    output += f"  {date}: {worker}\n"
+        for date, worker in shifts.items():
+                output += f"  {date}: {worker}\n"
         self.output_display.setText(output)
     
     def export_to_ical(self):
