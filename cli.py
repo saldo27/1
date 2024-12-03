@@ -1,4 +1,3 @@
-
 import sys
 from datetime import datetime
 from PySide6.QtWidgets import (
@@ -40,6 +39,8 @@ class MainWindow(QMainWindow):
         self.export_csv_button = QPushButton("Export to CSV")
         self.breakdown_button = QPushButton("Breakdown by Worker")
         self.import_csv_button = QPushButton("Import from CSV")
+        self.output_display = QTextEdit()
+        self.output_display.setReadOnly(True)
 
         # Connect buttons to functions
         self.schedule_button.clicked.connect(self.schedule_shifts)
@@ -84,6 +85,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.export_ical_button)
         layout.addWidget(self.export_pdf_button)
         layout.addWidget(self.export_csv_button)
+        layout.addWidget(QLabel("Schedule Output:"))
+        layout.addWidget(self.output_display)
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
