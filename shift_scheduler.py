@@ -4,9 +4,28 @@ logging.basicConfig(level=logging.DEBUG)
 from datetime import timedelta, datetime
 from collections import defaultdict
 import csv
+from worker import Worker
 
 logging.basicConfig(level=logging.DEBUG)
 
+def import_workers_from_csv(filename):
+    workers = []
+    with open(filename, mode='r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            worker = Worker(
+                identification=row['Identification'],
+                work_dates=row['Work Dates'].split(','),
+                percentage=float(row['Percentage']),
+                group=row['Group'],
+                incompatible_job=row['Incompatible Job'].split(','),
+                group_incompatibility=row['Group Incompatibility'].split(','),
+                obligatory_coverage=row['Obligatory Coverage'].split(','),
+                unavailable_dates=row['Unavailable Dates'].split(',')
+            )
+            workers.append(worker)
+    return workers
+    
 class Worker:
     def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, unavailable_dates=None):
         self.identification = identification
@@ -207,7 +226,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
-
+  
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
