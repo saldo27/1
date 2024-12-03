@@ -1,8 +1,6 @@
 import csv
 import logging
-# Existing imports
-from datetime import timedelta, datetime
-from collections import defaultdict
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
 
