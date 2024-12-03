@@ -258,6 +258,3 @@ app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
 sys.exit(app.exec())
-With these changes, the schedule output box is removed from the main window and the schedule output will only be displayed in the separate ScheduleOutputWindow.
-
-
