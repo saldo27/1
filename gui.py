@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 
 from PySide6.QtGui import QAction
 from worker import Worker
-from shift_scheduler import schedule_shifts, prepare_breakdown, export_breakdown
+from shift_scheduler import schedule_shifts, prepare_breakdown, export_breakdown, export_schedule_to_csv
 from icalendar import Calendar, Event
 from pdf_exporter import export_schedule_to_pdf
 from reportlab.lib.pagesizes import letter
@@ -31,11 +31,13 @@ class MainWindow(QMainWindow):
         self.schedule_button = QPushButton("Schedule Shifts")
         self.export_ical_button = QPushButton("Export to iCalendar")
         self.export_pdf_button = QPushButton("Export to PDF")
+        self.export_csv_button = QPushButton("Export to CSV")
         self.breakdown_button = QPushButton("Breakdown by Worker")
         # Connect buttons to functions
         self.schedule_button.clicked.connect(self.schedule_shifts)
         self.export_ical_button.clicked.connect(self.export_to_ical)
         self.export_pdf_button.clicked.connect(self.export_to_pdf)
+        self.export_csv_button.clicked.connect(self.export_to_csv)
         self.breakdown_button.clicked.connect(self.display_breakdown)
         # Setup layout
         layout = QVBoxLayout()
@@ -70,6 +72,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.schedule_button)
         layout.addWidget(self.export_ical_button)
         layout.addWidget(self.export_pdf_button)
+        layout.addWidget(self.export_csv_button)  # Add the CSV button to the layout
         layout.addWidget(QLabel("Schedule Output:"))
         layout.addWidget(self.output_display)
         container = QWidget()
@@ -208,7 +211,14 @@ class MainWindow(QMainWindow):
         self.output_display = table
         layout = self.centralWidget().layout()
         layout.addWidget(self.output_display)
-        
+
+    # Implement the export_to_csv function
+    def export_to_csv(self):
+        options = QFileDialog.Options()
+        filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
+        if filePath:
+            export_schedule_to_csv(self.schedule, filePath)
+            
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()

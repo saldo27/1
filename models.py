@@ -7,7 +7,7 @@ class Worker:
         self.incompatible_job = incompatible_job
         self.group_incompatibility = group_incompatibility
         self.obligatory_coverage = obligatory_coverage
-        self.day_off = day_off
+        self.unavailable_dates = unavailable_dates
         self.has_exception = False  # Add this line to track exceptions
 
 class Shift:

@@ -41,5 +41,9 @@ if __name__ == "__main__":
     schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
     breakdown = prepare_breakdown(schedule)
     export_breakdown(breakdown)
+    
+    export_schedule_to_csv(schedule)  # Call the CSV export function
 
+    print("Schedule exported to CSV successfully.")
+    
     sys.exit(app.exec())

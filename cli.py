@@ -1,5 +1,5 @@
 from worker import Worker
-from shift_scheduler import schedule_shifts
+from shift_scheduler import schedule_shifts, export_schedule_to_csv
 from datetime import datetime
 
 def run_cli():
@@ -7,7 +7,7 @@ def run_cli():
     work_periods_input = input().split(',')
     work_periods = [period.strip() for period in work_periods_input]
 
-    print("Enter festivos (comma-separated, e.g., '05/10/2024'): ")
+    print("Enter holidays (comma-separated, e.g., '05/10/2024'): ")
     holidays = input().split(',')
 
     print("Enter workstations (comma-separated, e.g., 'A,B,C'): ")
@@ -33,6 +33,12 @@ def run_cli():
         print(f"Job {job}:")
         for date, worker in shifts.items():
             print(f"  {date}: {worker}")
+
+    print("Do you want to export the schedule to a CSV file? (yes/no): ")
+    export_csv = input().strip().lower()
+    if export_csv == 'yes':
+        export_schedule_to_csv(schedule)
+        print("Schedule exported to CSV successfully.")
 
 if __name__ == "__main__":
     run_cli()
