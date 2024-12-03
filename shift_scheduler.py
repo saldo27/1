@@ -245,10 +245,11 @@ def export_breakdown(breakdown):
 def export_schedule_to_csv(schedule, filename='shift_schedule.csv'):
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Job', 'Date', 'Worker'])
+        # Correct headers
+        writer.writerow(['Identification', 'Work Dates', 'Percentage', 'Group', 'Incompatible Job', 'Group Incompatibility', 'Obligatory Coverage', 'Unavailable Dates'])
         for job, shifts in schedule.items():
             for date, worker in shifts.items():
-                writer.writerow([job, date, worker])
+                writer.writerow([worker, '', '', '', '', '', '', ''])  # Adjust the values based on your data structure
                 
 if __name__ == "__main__":
     # User input for the required parameters
