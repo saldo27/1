@@ -8,7 +8,7 @@ from worker import Worker
 
 logging.basicConfig(level=logging.DEBUG)
 
-def import_workers_from_csv(filename):
+def import_workers_from_csv(filename, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week):
     workers = []
     with open(filename, mode='r') as file:
         reader = csv.DictReader(file)
@@ -24,6 +24,13 @@ def import_workers_from_csv(filename):
                 unavailable_dates=row['Unavailable Dates'].split(',')
             )
             workers.append(worker)
+            for date_str in worker.obligatory_coverage:
+                if date_str.strip():
+                    date = datetime.strptime(date_str.strip(), "%d/%m/%Y")
+                    for job in schedule.keys():
+                        if can_work_on_date(worker, date, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=True, schedule=schedule, workers=workers):
+                            assign_worker_to_shift(worker, date, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week, obligatory=True)
+                            break
     return workers
     
 class Worker:
