@@ -18,6 +18,26 @@ class Worker:
         self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
 
+def import_workers_from_csv(filename):
+    workers = []
+    with open(filename, mode='r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            work_dates = [(datetime.strptime(start.strip(), "%d/%m/%Y"), datetime.strptime(end.strip(), "%d/%m/%Y")) 
+                          for period in row['Work Dates'].split(',') if '-' in period for start, end in [period.split('-')]]
+            worker = Worker(
+                identification=row['Identification'],
+                work_dates=work_dates,
+                percentage=float(row['Percentage']),
+                group=row['Group'],
+                incompatible_job=row['Incompatible Job'].split(','),
+                group_incompatibility=row['Group Incompatibility'].split(','),
+                obligatory_coverage=row['Obligatory Coverage'].split(','),
+                unavailable_dates=row['Unavailable Dates'].split(',')
+            )
+            workers.append(worker)
+    return workers
+    
 def calculate_shift_quota(workers, total_days, jobs_per_day):
     total_percentage = sum(worker.percentage_shifts for worker in workers)
     total_shifts = total_days * jobs_per_day
