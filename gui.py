@@ -13,108 +13,107 @@ from pdf_exporter import export_schedule_to_pdf
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-class MainWindow(QMainWindow):
-    def import_from_csv(self):
-        options = QFileDialog.Options()
-        filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
-        if filePath:
-            workers = import_workers_from_csv(filePath)
-            # Update worker inputs with imported data
+class ScheduleOutputWindow(QMainWindow):
+    def __init__(self, schedule, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Schedule Output")
+        self.setGeometry(100, 100, 600, 400)
+        self.schedule = schedule
+        self.initUI()
 
+    def initUI(self):
+        layout = QVBoxLayout()
+        output = QTextEdit()
+        output.setReadOnly(True)
+        schedule_text = self.format_schedule(self.schedule)
+        output.setText(schedule_text)
+        layout.addWidget(output)
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+    def format_schedule(self, schedule):
+        output = ""
+        for job, shifts in schedule.items():
+            output += f"Job {job}:\n"
+            for date, worker in shifts.items():
+                output += f"  {date}: {worker}\n"
+        return output
+        
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Shift Scheduler")
+        self.setGeometry(100, 100, 800, 600)
+        self.initUI()
 
-        # Initialize widgets
-        self.work_periods_input = QLineEdit()
-        self.holidays_input = QLineEdit()
-        self.jobs_input = QLineEdit()
-        self.num_workers_input = QLineEdit()
-        self.min_distance_input = QLineEdit()
-        self.max_shifts_per_week_input = QLineEdit()
-        self.previous_shifts_input = QLineEdit()
-        self.worker_inputs = []
-        self.output_display = QTextEdit()
-        self.output_display.setReadOnly(True)
-        self.schedule_button = QPushButton("Schedule Shifts")
-        self.export_ical_button = QPushButton("Export to iCalendar")
-        self.export_pdf_button = QPushButton("Export to PDF")
-        self.export_csv_button = QPushButton("Export to CSV")
-        self.breakdown_button = QPushButton("Breakdown by Worker")
-        self.import_csv_button = QPushButton("Import from CSV")  # Add the CSV import button
-
-        # Connect buttons to functions
-        self.schedule_button.clicked.connect(self.schedule_shifts)
-        self.export_ical_button.clicked.connect(self.export_to_ical)
-        self.export_pdf_button.clicked.connect(self.export_to_pdf)
-        self.export_csv_button.clicked.connect(self.export_to_csv)
-        self.breakdown_button.clicked.connect(self.display_breakdown)
-        self.import_csv_button.clicked.connect(self.import_from_csv)  # Connect the CSV import button
-
-        # Setup layout
+    def initUI(self):
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'):"))
-        layout.addWidget(self.work_periods_input)
-        layout.addWidget(QLabel("Enter holidays (comma-separated, e.g., '05/10/2024'):"))
-        layout.addWidget(self.holidays_input)
-        layout.addWidget(QLabel("Enter workstations (comma-separated, e.g., 'A,B,C'):"))
-        layout.addWidget(self.jobs_input)
-        layout.addWidget(QLabel("Enter minimum distance between work shifts (in days):"))
-        layout.addWidget(self.min_distance_input)
-        layout.addWidget(QLabel("Enter maximum shifts that can be assigned per week:"))
-        layout.addWidget(self.max_shifts_per_week_input)
-        layout.addWidget(QLabel("Enter number of workers:"))
+        self.num_workers_input = QLineEdit()
+        self.num_workers_input.setPlaceholderText("Enter number of workers")
         layout.addWidget(self.num_workers_input)
+
+        self.breakdown_button = QPushButton("Display Breakdown")
+        self.breakdown_button.clicked.connect(self.display_breakdown)
         layout.addWidget(self.breakdown_button)
-        layout.addWidget(self.import_csv_button)  # Add the CSV import button to the layout
 
-        # Worker inputs layout
+        self.import_csv_button = QPushButton("Import from CSV")
+        layout.addWidget(self.import_csv_button)
+
         self.worker_layout = QGridLayout()
-
-        # Scroll area for worker inputs
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area_widget = QWidget()
         self.scroll_area_widget.setLayout(self.worker_layout)
         self.scroll_area.setWidget(self.scroll_area_widget)
-
+        self.scroll_area.setMinimumHeight(400)
+        self.scroll_area.setMinimumWidth(800)
         layout.addWidget(self.scroll_area)
-        
+
         self.num_workers_input.textChanged.connect(self.update_worker_inputs)
-        
+
+        self.schedule_button = QPushButton("Schedule Shifts")
+        self.schedule_button.clicked.connect(self.schedule_shifts)
         layout.addWidget(self.schedule_button)
+
+        self.export_ical_button = QPushButton("Export to iCalendar")
+        self.export_ical_button.clicked.connect(self.export_to_ical)
         layout.addWidget(self.export_ical_button)
+
+        self.export_pdf_button = QPushButton("Export to PDF")
+        self.export_pdf_button.clicked.connect(self.export_to_pdf)
         layout.addWidget(self.export_pdf_button)
+
+        self.export_csv_button = QPushButton("Export to CSV")
+        self.export_csv_button.clicked.connect(self.export_to_csv)
         layout.addWidget(self.export_csv_button)
-        layout.addWidget(QLabel("Schedule Output:"))
-        layout.addWidget(self.output_display)
+
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
     def update_worker_inputs(self):
         num_workers = int(self.num_workers_input.text()) if self.num_workers_input.text().isdigit() else 0
-        # Clear existing inputs
         for i in reversed(range(self.worker_layout.count())):
             self.worker_layout.itemAt(i).widget().setParent(None)
         self.worker_inputs = []
         for i in range(num_workers):
             identification_input = QLineEdit()
-            identification_input.setFixedWidth(150)
+            identification_input.setFixedWidth(200)
             working_dates_input = QLineEdit()
-            working_dates_input.setFixedWidth(150)
+            working_dates_input.setFixedWidth(200)
             percentage_shifts_input = QLineEdit()
-            percentage_shifts_input.setFixedWidth(150)
+            percentage_shifts_input.setFixedWidth(200)
             group_input = QLineEdit()
-            group_input.setFixedWidth(150)
+            group_input.setFixedWidth(200)
             position_incompatibility_input = QLineEdit()
-            position_incompatibility_input.setFixedWidth(150)
+            position_incompatibility_input.setFixedWidth(200)
             group_incompatibility_input = QLineEdit()
-            group_incompatibility_input.setFixedWidth(150)
+            group_incompatibility_input.setFixedWidth(200)
             obligatory_coverage_input = QLineEdit()
-            obligatory_coverage_input.setFixedWidth(150)
+            obligatory_coverage_input.setFixedWidth(200)
             unavailable_dates_input = QLineEdit()
-            unavailable_dates_input.setFixedWidth(150)
+            unavailable_dates_input.setFixedWidth(200)
 
             self.worker_layout.addWidget(QLabel(f"Worker {i+1} Identification:"), i, 0)
             self.worker_layout.addWidget(identification_input, i, 1)
@@ -168,28 +167,11 @@ class MainWindow(QMainWindow):
         ]
         # Schedule shifts
         schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
-                        
-        # Display the schedule
-        output = ""
         self.schedule = schedule  # Save the schedule for exporting
+
         self.schedule_window = ScheduleOutputWindow(schedule)
         self.schedule_window.show()
-        for job, shifts in schedule.items():
-            output += f"Job {job}:\n"
-            for date, worker in shifts.items():
-                output += f"  {date}: {worker}\n"
-
-        # Check the type of self.output_display before setting text
-        if isinstance(self.output_display, QTextEdit):
-            self.output_display.setText(output)
-        else:
-            self.output_display.setParent(None)
-            self.output_display = QTextEdit()
-            self.output_display.setReadOnly(True)
-            self.output_display.setText(output)
-            layout = self.centralWidget().layout()
-            layout.addWidget(self.output_display)
-
+                        
     def export_to_ical(self):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as iCalendar", "", "iCalendar Files (*.ics);;All Files (*)", options=options)
@@ -218,21 +200,15 @@ class MainWindow(QMainWindow):
             
     def display_breakdown(self):
         breakdown = prepare_breakdown(self.schedule)
-        
-        # Create a table widget
         table = QTableWidget()
         table.setColumnCount(2)
         table.setHorizontalHeaderLabels(["Worker", "Shifts Assigned"])
-        
-        # Populate the table with data from the breakdown
         table.setRowCount(len(breakdown))
         for row, (worker_id, shifts) in enumerate(breakdown.items()):
             worker_item = QTableWidgetItem(worker_id)
             shifts_item = QTableWidgetItem(", ".join([f"{date}: {job}" for date, job in shifts]))
             table.setItem(row, 0, worker_item)
             table.setItem(row, 1, shifts_item)
-        
-        # Replace the output display with the table
         self.output_display.setParent(None)
         self.output_display = table
         layout = self.centralWidget().layout()
@@ -244,34 +220,7 @@ class MainWindow(QMainWindow):
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
         if filePath:
             export_schedule_to_csv(self.schedule, filePath)
-            
-class ScheduleOutputWindow(QMainWindow):
-    def __init__(self, schedule, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Schedule Output")
-        self.setGeometry(100, 100, 600, 400)
-        self.schedule = schedule
-        self.initUI()
-
-    def initUI(self):
-        layout = QVBoxLayout()
-        output = QTextEdit()
-        output.setReadOnly(True)
-        schedule_text = self.format_schedule(self.schedule)
-        output.setText(schedule_text)
-        layout.addWidget(output)
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
-
-    def format_schedule(self, schedule):
-        output = ""
-        for job, shifts in schedule.items():
-            output += f"Job {job}:\n"
-            for date, worker in shifts.items():
-                output += f"  {date}: {worker}\n"
-        return output       
-        
+             
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
