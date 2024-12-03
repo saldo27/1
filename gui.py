@@ -44,50 +44,70 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Shift Scheduler")
-        self.setGeometry(100, 100, 800, 600)
-        self.initUI()
 
-    def initUI(self):
-        layout = QVBoxLayout()
+        # Initialize widgets
+        self.work_periods_input = QLineEdit()
+        self.holidays_input = QLineEdit()
+        self.jobs_input = QLineEdit()
         self.num_workers_input = QLineEdit()
-        self.num_workers_input.setPlaceholderText("Enter number of workers")
-        layout.addWidget(self.num_workers_input)
-
-        self.breakdown_button = QPushButton("Display Breakdown")
-        self.breakdown_button.clicked.connect(self.display_breakdown)
-        layout.addWidget(self.breakdown_button)
-
+        self.min_distance_input = QLineEdit()
+        self.max_shifts_per_week_input = QLineEdit()
+        self.previous_shifts_input = QLineEdit()
+        self.worker_inputs = []
+        self.output_display = QTextEdit()
+        self.output_display.setReadOnly(True)
+        self.schedule_button = QPushButton("Schedule Shifts")
+        self.export_ical_button = QPushButton("Export to iCalendar")
+        self.export_pdf_button = QPushButton("Export to PDF")
+        self.export_csv_button = QPushButton("Export to CSV")
+        self.breakdown_button = QPushButton("Breakdown by Worker")
         self.import_csv_button = QPushButton("Import from CSV")
-        layout.addWidget(self.import_csv_button)
 
+        # Connect buttons to functions
+        self.schedule_button.clicked.connect(self.schedule_shifts)
+        self.export_ical_button.clicked.connect(self.export_to_ical)
+        self.export_pdf_button.clicked.connect(self.export_to_pdf)
+        self.export_csv_button.clicked.connect(self.export_to_csv)
+        self.breakdown_button.clicked.connect(self.display_breakdown)
+        self.import_csv_button.clicked.connect(self.import_from_csv)
+
+        # Setup layout
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'):"))
+        layout.addWidget(self.work_periods_input)
+        layout.addWidget(QLabel("Enter holidays (comma-separated, e.g., '05/10/2024'):"))
+        layout.addWidget(self.holidays_input)
+        layout.addWidget(QLabel("Enter workstations (comma-separated, e.g., 'A,B,C'):"))
+        layout.addWidget(self.jobs_input)
+        layout.addWidget(QLabel("Enter minimum distance between work shifts (in days):"))
+        layout.addWidget(self.min_distance_input)
+        layout.addWidget(QLabel("Enter maximum shifts that can be assigned per week:"))
+        layout.addWidget(self.max_shifts_per_week_input)
+        layout.addWidget(QLabel("Enter number of workers:"))
+        layout.addWidget(self.num_workers_input)
+        layout.addWidget(self.breakdown_button)
+        layout.addWidget(self.import_csv_button)  # Add the CSV import button to the layout
+
+        # Worker inputs layout
         self.worker_layout = QGridLayout()
+
+        # Scroll area for worker inputs
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area_widget = QWidget()
         self.scroll_area_widget.setLayout(self.worker_layout)
         self.scroll_area.setWidget(self.scroll_area_widget)
-        self.scroll_area.setMinimumHeight(400)
-        self.scroll_area.setMinimumWidth(800)
+
         layout.addWidget(self.scroll_area)
 
         self.num_workers_input.textChanged.connect(self.update_worker_inputs)
 
-        self.schedule_button = QPushButton("Schedule Shifts")
-        self.schedule_button.clicked.connect(self.schedule_shifts)
         layout.addWidget(self.schedule_button)
-
-        self.export_ical_button = QPushButton("Export to iCalendar")
-        self.export_ical_button.clicked.connect(self.export_to_ical)
         layout.addWidget(self.export_ical_button)
-
-        self.export_pdf_button = QPushButton("Export to PDF")
-        self.export_pdf_button.clicked.connect(self.export_to_pdf)
         layout.addWidget(self.export_pdf_button)
-
-        self.export_csv_button = QPushButton("Export to CSV")
-        self.export_csv_button.clicked.connect(self.export_to_csv)
         layout.addWidget(self.export_csv_button)
-
+        layout.addWidget(QLabel("Schedule Output:"))
+        layout.addWidget(self.output_display)
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
