@@ -1,6 +1,7 @@
 import csv
 import logging
 from datetime import datetime
+from collections import defaultdict
 
 logging.basicConfig(level=logging.DEBUG)
 
