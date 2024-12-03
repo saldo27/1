@@ -16,7 +16,7 @@ from reportlab.pdfgen import canvas
 class ScheduleOutputWindow(QMainWindow):
     def __init__(self, schedule, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Schedule Output")
+        self.setWindowTitle("Distribución de Guardias")
         self.setGeometry(100, 100, 600, 400)
         self.schedule = schedule
         self.initUI()
@@ -43,7 +43,7 @@ class ScheduleOutputWindow(QMainWindow):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Shift Scheduler")
+        self.setWindowTitle("Distribución de Guardias")
 
         # Initialize widgets
         self.work_periods_input = QLineEdit()
@@ -54,12 +54,12 @@ class MainWindow(QMainWindow):
         self.max_shifts_per_week_input = QLineEdit()
         self.previous_shifts_input = QLineEdit()
         self.worker_inputs = []
-        self.schedule_button = QPushButton("Schedule Shifts")
-        self.export_ical_button = QPushButton("Export to iCalendar")
-        self.export_pdf_button = QPushButton("Export to PDF")
-        self.export_csv_button = QPushButton("Export to CSV")
-        self.breakdown_button = QPushButton("Breakdown by Worker")
-        self.import_csv_button = QPushButton("Import from CSV")
+        self.schedule_button = QPushButton("Poner Guardias")
+        self.export_ical_button = QPushButton("Exportar a iCalendar")
+        self.export_pdf_button = QPushButton("Exportar a PDF")
+        self.export_csv_button = QPushButton("Exportar a CSV")
+        self.breakdown_button = QPushButton("Desglose por Médico")
+        self.import_csv_button = QPushButton("Importar desde CSV")
 
         # Connect buttons to functions
         self.schedule_button.clicked.connect(self.schedule_shifts)
@@ -71,17 +71,17 @@ class MainWindow(QMainWindow):
 
         # Setup layout
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'):"))
+        layout.addWidget(QLabel("Periodos de trabajo (separados por comas, e.j., '01/10/2024-10/10/2024'):"))
         layout.addWidget(self.work_periods_input)
-        layout.addWidget(QLabel("Enter holidays (comma-separated, e.g., '05/10/2024'):"))
+        layout.addWidget(QLabel("Festivos (separados por comas, e.j., '05/10/2024'):"))
         layout.addWidget(self.holidays_input)
-        layout.addWidget(QLabel("Enter workstations (comma-separated, e.g., 'A,B,C'):"))
+        layout.addWidget(QLabel("Puestos de trabajo (e.j., 'A,B,C'):"))
         layout.addWidget(self.jobs_input)
-        layout.addWidget(QLabel("Enter minimum distance between work shifts (in days):"))
+        layout.addWidget(QLabel("Distancia minima entre guardias:"))
         layout.addWidget(self.min_distance_input)
-        layout.addWidget(QLabel("Enter maximum shifts that can be assigned per week:"))
+        layout.addWidget(QLabel("Guardias máximas por semana:"))
         layout.addWidget(self.max_shifts_per_week_input)
-        layout.addWidget(QLabel("Enter number of workers:"))
+        layout.addWidget(QLabel("Número de médicos:"))
         layout.addWidget(self.num_workers_input)
         layout.addWidget(self.breakdown_button)
         layout.addWidget(self.import_csv_button)  # Add the CSV import button to the layout
@@ -115,37 +115,37 @@ class MainWindow(QMainWindow):
         self.worker_inputs = []
         for i in range(num_workers):
             identification_input = QLineEdit()
-            identification_input.setFixedWidth(200)
+            identification_input.setFixedWidth(50)
             working_dates_input = QLineEdit()
-            working_dates_input.setFixedWidth(200)
+            working_dates_input.setFixedWidth(100)
             percentage_shifts_input = QLineEdit()
-            percentage_shifts_input.setFixedWidth(200)
+            percentage_shifts_input.setFixedWidth(30)
             group_input = QLineEdit()
-            group_input.setFixedWidth(200)
+            group_input.setFixedWidth(20)
             position_incompatibility_input = QLineEdit()
-            position_incompatibility_input.setFixedWidth(200)
+            position_incompatibility_input.setFixedWidth(20)
             group_incompatibility_input = QLineEdit()
-            group_incompatibility_input.setFixedWidth(200)
+            group_incompatibility_input.setFixedWidth(20)
             obligatory_coverage_input = QLineEdit()
-            obligatory_coverage_input.setFixedWidth(200)
+            obligatory_coverage_input.setFixedWidth(100)
             unavailable_dates_input = QLineEdit()
-            unavailable_dates_input.setFixedWidth(200)
+            unavailable_dates_input.setFixedWidth(100)
 
-            self.worker_layout.addWidget(QLabel(f"Worker {i+1} Identification:"), i, 0)
+            self.worker_layout.addWidget(QLabel(f"Identificación {i+1}:"), i, 0)
             self.worker_layout.addWidget(identification_input, i, 1)
-            self.worker_layout.addWidget(QLabel("Working Dates (comma-separated periods):"), i, 2)
+            self.worker_layout.addWidget(QLabel("Cuando trabaja (separado por comas):"), i, 2)
             self.worker_layout.addWidget(working_dates_input, i, 3)
-            self.worker_layout.addWidget(QLabel("Percentage of Shifts Performed:"), i, 4)
+            self.worker_layout.addWidget(QLabel("Porcentaje de jornada:"), i, 4)
             self.worker_layout.addWidget(percentage_shifts_input, i, 5)
-            self.worker_layout.addWidget(QLabel("Group:"), i, 6)
+            self.worker_layout.addWidget(QLabel("Grupo:"), i, 6)
             self.worker_layout.addWidget(group_input, i, 7)
-            self.worker_layout.addWidget(QLabel("Position Incompatibility (comma-separated):"), i, 8)
+            self.worker_layout.addWidget(QLabel("No trabaja Rosell:"), i, 8)
             self.worker_layout.addWidget(position_incompatibility_input, i, 9)
-            self.worker_layout.addWidget(QLabel("Group Incompatibility (comma-separated):"), i, 10)
+            self.worker_layout.addWidget(QLabel("Incompatibilidad con grupo:"), i, 10)
             self.worker_layout.addWidget(group_incompatibility_input, i, 11)
-            self.worker_layout.addWidget(QLabel("Obligatory coverage (comma-separated dates):"), i, 12)
+            self.worker_layout.addWidget(QLabel("Guardias obligatorias (separadas por comas):"), i, 12)
             self.worker_layout.addWidget(obligatory_coverage_input, i, 13)
-            self.worker_layout.addWidget(QLabel("Unavailable Dates (comma-separated dates):"), i, 14)
+            self.worker_layout.addWidget(QLabel("Guardias No disponible (separado por comas):"), i, 14)
             self.worker_layout.addWidget(unavailable_dates_input, i, 15)
 
             self.worker_inputs.append({
