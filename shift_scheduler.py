@@ -1,6 +1,6 @@
 import csv
 import logging
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +28,7 @@ def import_workers_from_csv(filename):
             worker = Worker(
                 identification=row['Identification'],
                 work_dates=work_dates,
-                percentage=float(row['Percentage']),
+                percentage=float(row['Percentage']) if row['Percentage'] else 100.0,
                 group=row['Group'],
                 incompatible_job=row['Incompatible Job'].split(','),
                 group_incompatibility=row['Group Incompatibility'].split(','),
