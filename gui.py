@@ -181,7 +181,17 @@ class MainWindow(QMainWindow):
             output += f"Job {job}:\n"
             for date, worker in shifts.items():
                 output += f"  {date}: {worker}\n"
-        self.output_display.setText(output)
+
+        # Check the type of self.output_display before setting text
+        if isinstance(self.output_display, QTextEdit):
+            self.output_display.setText(output)
+        else:
+            self.output_display.setParent(None)
+            self.output_display = QTextEdit()
+            self.output_display.setReadOnly(True)
+            self.output_display.setText(output)
+            layout = self.centralWidget().layout()
+            layout.addWidget(self.output_display)
 
     def export_to_ical(self):
         options = QFileDialog.Options()
