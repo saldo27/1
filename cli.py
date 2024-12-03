@@ -1,8 +1,17 @@
 from worker import Worker
+from shift_scheduler import schedule_shifts, import_workers_from_csv
 from shift_scheduler import schedule_shifts, export_schedule_to_csv
 from datetime import datetime
 
 def run_cli():
+    print("Do you want to import workers from a CSV file? (yes/no): ")
+    import_csv = input().strip().lower()
+    if import_csv == 'yes':
+        print("Enter the CSV file path: ")
+        csv_file = input().strip()
+        workers = import_workers_from_csv(csv_file)
+    else:
+        
     print("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'): ")
     work_periods_input = input().split(',')
     work_periods = [period.strip() for period in work_periods_input]
@@ -21,7 +30,7 @@ def run_cli():
 
     print("Enter number of workers: ")
     num_workers = int(input())
-
+    
     workers = []
     for _ in range(num_workers):
         workers.append(Worker.from_user_input())
