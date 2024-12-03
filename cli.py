@@ -8,7 +8,19 @@ def run_cli():
     if import_csv == 'yes':
         print("Enter the CSV file path: ")
         csv_file = input().strip()
-        workers = import_workers_from_csv(csv_file)
+        # Initialize necessary parameters for schedule
+        work_periods = []
+        holidays = []
+        jobs = []
+        min_distance = 0
+        max_shifts_per_week = 0
+        schedule = {job: {} for job in jobs}
+        holidays_set = set(holidays)
+        weekend_tracker = defaultdict(int)
+        last_shift_dates = defaultdict(list)
+        job_count = defaultdict(lambda: defaultdict(int))
+        weekly_tracker = defaultdict(lambda: defaultdict(int))
+        workers = import_workers_from_csv(csv_file, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
     else:
         print("Enter number of workers: ")
         num_workers = int(input())
