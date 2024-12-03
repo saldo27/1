@@ -143,7 +143,20 @@ class MainWindow(QMainWindow):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
         if filePath:
-            workers = import_workers_from_csv(filePath)
+            # Initialize necessary parameters for schedule
+            work_periods = []
+            holidays = []
+            jobs = []
+            min_distance = 0
+            max_shifts_per_week = 0
+            schedule = {job: {} for job in jobs}
+            holidays_set = set(holidays)
+            weekend_tracker = defaultdict(int)
+            last_shift_dates = defaultdict(list)
+            job_count = defaultdict(lambda: defaultdict(int))
+            weekly_tracker = defaultdict(lambda: defaultdict(int))
+            workers = import_workers_from_csv(filePath, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
+            # Update worker inputs with imported data
 
     def schedule_shifts(self):
         # Get inputs
