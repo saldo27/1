@@ -8,14 +8,16 @@ from worker import Worker
 
 logging.basicConfig(level=logging.DEBUG)
 
-def import_workers_from_csv(filename, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week):
+def import_workers_from_csv(filename):
     workers = []
     with open(filename, mode='r') as file:
         reader = csv.DictReader(file)
         for row in reader:
+            work_dates = [(datetime.strptime(start.strip(), "%d/%m/%Y"), datetime.strptime(end.strip(), "%d/%m/%Y")) 
+                          for period in row['Work Dates'].split(',') if '-' in period for start, end in [period.split('-')]]
             worker = Worker(
                 identification=row['Identification'],
-                work_dates=row['Work Dates'].split(','),
+                work_dates=work_dates,
                 percentage=float(row['Percentage']),
                 group=row['Group'],
                 incompatible_job=row['Incompatible Job'].split(','),
@@ -24,14 +26,6 @@ def import_workers_from_csv(filename, schedule, last_shift_dates, weekend_tracke
                 unavailable_dates=row['Unavailable Dates'].split(',')
             )
             workers.append(worker)
-            for date_str in worker.obligatory_coverage:
-                if date_str.strip():
-                    date = datetime.strptime(date_str.strip(), "%d/%m/%Y")
-                    for job in schedule.keys():
-                        if can_work_on_date(worker, date, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=True, schedule=schedule, workers=workers):
-                            assign_worker_to_shift(worker, date, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week, obligatory=True)
-                            break
-    return workers
     
 class Worker:
     def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, unavailable_dates=None):
@@ -66,9 +60,11 @@ def is_holiday(date_str, holidays_set):
         return False
 
 def can_work_on_date(worker, date, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=False, schedule=None, workers=None):
-    if isinstance(date, str) and date:  # Check if date is a non-empty string
         date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
-
+    if worker.work_dates:
+        is_in_work_dates = any(start <= date <= end for start, end in worker.work_dates)
+        if not is_in_work_dates:
+            return False
     # Check for group incompatibility
     if schedule and workers and not override:
         for job_schedule in schedule.values():
@@ -170,7 +166,33 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
     total_days = sum((end_date - start_date).days + 1 for start_date, end_date in valid_work_periods)
     jobs_per_day = len(jobs)
     calculate_shift_quota(workers, total_days, jobs_per_day)
-
+    
+    for job in jobs:
+        for date in generate_date_range(start_date, end_date):
+            date_str = date.strftime("%d/%m/%Y")
+            if is_holiday(date_str, holidays_set) or is_weekend(date):
+                continue
+            available_workers = [worker for worker in workers if worker.shift_quota > 0 and can_work_on_date(worker, date, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week)]
+            if not available_workers:
+                logging.error(f"No available workers for job {job} on {date_str}. Stopping assignment.")
+                return schedule
+            worker = max(available_workers, key=lambda w: (
+                (date - last_shift_dates[w.identification][-1]).days if last_shift_dates[w.identification] else float('inf'),
+                w.shift_quota,
+                w.percentage_shifts,
+                last_assigned_job[w.identification] != job,
+                last_assigned_day[w.identification] != date.weekday(),
+                not day_rotation_tracker[w.identification][date.weekday()]
+            ))
+            assign_worker_to_shift(worker, date, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
+            last_assigned_job[worker.identification] = job
+            last_assigned_day[worker.identification] = date.weekday()
+            day_rotation_tracker[worker.identification][date.weekday()] = True
+            logging.debug(f"Assigned shift for Worker {worker.identification} on {date} for job {job}")
+            assigned = True
+    logging.debug(f"Final schedule: {schedule}")
+    return schedule
+    
     for worker in workers:
         if not worker.work_dates:
             worker.work_dates = valid_work_periods
