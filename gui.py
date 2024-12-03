@@ -54,8 +54,6 @@ class MainWindow(QMainWindow):
         self.max_shifts_per_week_input = QLineEdit()
         self.previous_shifts_input = QLineEdit()
         self.worker_inputs = []
-        self.output_display = QTextEdit()
-        self.output_display.setReadOnly(True)
         self.schedule_button = QPushButton("Schedule Shifts")
         self.export_ical_button = QPushButton("Export to iCalendar")
         self.export_pdf_button = QPushButton("Export to PDF")
@@ -106,8 +104,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.export_ical_button)
         layout.addWidget(self.export_pdf_button)
         layout.addWidget(self.export_csv_button)
-        layout.addWidget(QLabel("Schedule Output:"))
-        layout.addWidget(self.output_display)
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
@@ -248,10 +244,8 @@ class MainWindow(QMainWindow):
             shifts_item = QTableWidgetItem(", ".join([f"{date}: {job}" for date, job in shifts]))
             table.setItem(row, 0, worker_item)
             table.setItem(row, 1, shifts_item)
-        self.output_display.setParent(None)
-        self.output_display = table
         layout = self.centralWidget().layout()
-        layout.addWidget(self.output_display)
+        layout.addWidget(table)
 
     # Implement the export_to_csv function
     def export_to_csv(self):
@@ -264,3 +258,6 @@ app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
 sys.exit(app.exec())
+With these changes, the schedule output box is removed from the main window and the schedule output will only be displayed in the separate ScheduleOutputWindow.
+
+
