@@ -60,7 +60,7 @@ def is_holiday(date_str, holidays_set):
         return False
 
 def can_work_on_date(worker, date, last_shift_dates, weekend_tracker, holidays_set, weekly_tracker, job, job_count, min_distance, max_shifts_per_week, override=False, schedule=None, workers=None):
-        date = datetime.strptime(date.strip(), "%d/%m/%Y")  # Ensure date is a datetime object
+    # Check if the date is within the worker's work_dates
     if worker.work_dates:
         is_in_work_dates = any(start <= date <= end for start, end in worker.work_dates)
         if not is_in_work_dates:
