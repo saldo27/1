@@ -17,10 +17,15 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Shift Scheduler")
+        
+        # Setup layout
+        layout = QVBoxLayout()
+        
         # Initialize widgets
         self.import_csv_button = QPushButton("Import Workers from CSV")
         self.import_csv_button.clicked.connect(self.import_from_csv)
         layout.addWidget(self.import_csv_button)
+        
         self.work_periods_input = QLineEdit()
         self.holidays_input = QLineEdit()
         self.jobs_input = QLineEdit()
@@ -36,14 +41,14 @@ class MainWindow(QMainWindow):
         self.export_pdf_button = QPushButton("Export to PDF")
         self.export_csv_button = QPushButton("Export to CSV")
         self.breakdown_button = QPushButton("Breakdown by Worker")
+        
         # Connect buttons to functions
         self.schedule_button.clicked.connect(self.schedule_shifts)
         self.export_ical_button.clicked.connect(self.export_to_ical)
         self.export_pdf_button.clicked.connect(self.export_to_pdf)
         self.export_csv_button.clicked.connect(self.export_to_csv)
         self.breakdown_button.clicked.connect(self.display_breakdown)
-        # Setup layout
-        layout = QVBoxLayout()
+        
         layout.addWidget(QLabel("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'):"))
         layout.addWidget(self.work_periods_input)
         layout.addWidget(QLabel("Enter holidays (comma-separated, e.g., '05/10/2024'):"))
@@ -139,7 +144,7 @@ class MainWindow(QMainWindow):
         filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
         if filePath:
             workers = import_workers_from_csv(filePath)
-    
+
     def schedule_shifts(self):
         # Get inputs
         work_periods = self.work_periods_input.text().split(',')
