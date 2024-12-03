@@ -7,13 +7,32 @@ from PySide6.QtWidgets import (
 
 from PySide6.QtGui import QAction
 from worker import Worker
-from shift_scheduler import schedule_shifts, prepare_breakdown, export_breakdown, export_schedule_to_csv
+from shift_scheduler import import_workers_from_csv, schedule_shifts, prepare_breakdown, export_breakdown, export_schedule_to_csv
 from icalendar import Calendar, Event
 from pdf_exporter import export_schedule_to_pdf
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 class MainWindow(QMainWindow):
+    def import_from_csv(self):
+        options = QFileDialog.Options()
+        filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
+        if filePath:
+            # Initialize necessary parameters for schedule
+            work_periods = []
+            holidays = []
+            jobs = []
+            min_distance = 0
+            max_shifts_per_week = 0
+            schedule = {job: {} for job in jobs}
+            holidays_set = set(holidays)
+            weekend_tracker = defaultdict(int)
+            last_shift_dates = defaultdict(list)
+            job_count = defaultdict(lambda: defaultdict(int))
+            weekly_tracker = defaultdict(lambda: defaultdict(int))
+            workers = import_workers_from_csv(filePath, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
+            # Update worker inputs with imported data
+            
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Shift Scheduler")
