@@ -1,9 +1,8 @@
+import csv
 import logging
-logging.basicConfig(level=logging.DEBUG)
 # Existing imports
 from datetime import timedelta, datetime
 from collections import defaultdict
-import csv
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -22,7 +21,9 @@ def import_workers_from_csv(filename):
     workers = []
     with open(filename, mode='r') as file:
         reader = csv.DictReader(file)
+        logging.debug(f"CSV Headers: {reader.fieldnames}")
         for row in reader:
+            logging.debug(f"CSV Row: {row}")
             work_dates = [(datetime.strptime(start.strip(), "%d/%m/%Y"), datetime.strptime(end.strip(), "%d/%m/%Y")) 
                           for period in row['Work Dates'].split(',') if '-' in period for start, end in [period.split('-')]]
             worker = Worker(
