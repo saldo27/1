@@ -1,3 +1,4 @@
+
 import sys
 from datetime import datetime
 from PySide6.QtWidgets import (
@@ -162,16 +163,16 @@ class MainWindow(QMainWindow):
             for input in self.worker_inputs
         ]
         # Schedule shifts
-         schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+        schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
         
         # Display the schedule
-         output = ""
-         self.schedule = schedule  # Save the schedule for exporting
+        output = ""
+        self.schedule = schedule  # Save the schedule for exporting
             for job, shifts in schedule.items():
                 output += f"Job {job}:\n"
                 for date, worker in shifts.items():
                     output += f"  {date}: {worker}\n"
-         self.output_display.setText(output)
+        self.output_display.setText(output)
     
     def export_to_ical(self):
         options = QFileDialog.Options()
