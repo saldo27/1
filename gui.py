@@ -18,24 +18,13 @@ class MainWindow(QMainWindow):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
         if filePath:
-            # Initialize necessary parameters for schedule
-            work_periods = []
-            holidays = []
-            jobs = []
-            min_distance = 0
-            max_shifts_per_week = 0
-            schedule = {job: {} for job in jobs}
-            holidays_set = set(holidays)
-            weekend_tracker = defaultdict(int)
-            last_shift_dates = defaultdict(list)
-            job_count = defaultdict(lambda: defaultdict(int))
-            weekly_tracker = defaultdict(lambda: defaultdict(int))
-            workers = import_workers_from_csv(filePath, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
+            workers = import_workers_from_csv(filePath)
             # Update worker inputs with imported data
-            
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Shift Scheduler")
+
         # Initialize widgets
         self.work_periods_input = QLineEdit()
         self.holidays_input = QLineEdit()
@@ -52,12 +41,16 @@ class MainWindow(QMainWindow):
         self.export_pdf_button = QPushButton("Export to PDF")
         self.export_csv_button = QPushButton("Export to CSV")
         self.breakdown_button = QPushButton("Breakdown by Worker")
+        self.import_csv_button = QPushButton("Import from CSV")  # Add the CSV import button
+
         # Connect buttons to functions
         self.schedule_button.clicked.connect(self.schedule_shifts)
         self.export_ical_button.clicked.connect(self.export_to_ical)
         self.export_pdf_button.clicked.connect(self.export_to_pdf)
         self.export_csv_button.clicked.connect(self.export_to_csv)
         self.breakdown_button.clicked.connect(self.display_breakdown)
+        self.import_csv_button.clicked.connect(self.import_from_csv)  # Connect the CSV import button
+
         # Setup layout
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Enter work periods (comma-separated, e.g., '01/10/2024-10/10/2024'):"))
@@ -73,7 +66,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Enter number of workers:"))
         layout.addWidget(self.num_workers_input)
         layout.addWidget(self.breakdown_button)
-                
+        layout.addWidget(self.import_csv_button)  # Add the CSV import button to the layout
+
         # Worker inputs layout
         self.worker_layout = QGridLayout()
 
@@ -91,7 +85,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.schedule_button)
         layout.addWidget(self.export_ical_button)
         layout.addWidget(self.export_pdf_button)
-        layout.addWidget(self.export_csv_button)  # Add the CSV button to the layout
+        layout.addWidget(self.export_csv_button)
         layout.addWidget(QLabel("Schedule Output:"))
         layout.addWidget(self.output_display)
         container = QWidget()
