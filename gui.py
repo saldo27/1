@@ -168,9 +168,13 @@ class MainWindow(QMainWindow):
         ]
         # Schedule shifts
         schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+            self.schedule = schedule  # Save the schedule for exporting
+            
         # Display the schedule
         output = ""
         self.schedule = schedule  # Save the schedule for exporting
+        self.schedule_window = ScheduleOutputWindow(schedule)
+        self.schedule_window.show()
         for job, shifts in schedule.items():
             output += f"Job {job}:\n"
             for date, worker in shifts.items():
@@ -242,6 +246,33 @@ class MainWindow(QMainWindow):
         if filePath:
             export_schedule_to_csv(self.schedule, filePath)
             
+class ScheduleOutputWindow(QMainWindow):
+    def __init__(self, schedule, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Schedule Output")
+        self.setGeometry(100, 100, 600, 400)
+        self.schedule = schedule
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+        output = QTextEdit()
+        output.setReadOnly(True)
+        schedule_text = self.format_schedule(self.schedule)
+        output.setText(schedule_text)
+        layout.addWidget(output)
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+    def format_schedule(self, schedule):
+        output = ""
+        for job, shifts in schedule.items():
+            output += f"Job {job}:\n"
+            for date, worker in shifts.items():
+                output += f"  {date}: {worker}\n"
+        return output       
+        
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
