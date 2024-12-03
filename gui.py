@@ -168,8 +168,7 @@ class MainWindow(QMainWindow):
         ]
         # Schedule shifts
         schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
-            self.schedule = schedule  # Save the schedule for exporting
-            
+                        
         # Display the schedule
         output = ""
         self.schedule = schedule  # Save the schedule for exporting
