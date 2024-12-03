@@ -33,8 +33,6 @@ class MainWindow(QMainWindow):
         self.max_shifts_per_week_input = QLineEdit()
         self.previous_shifts_input = QLineEdit()
         self.worker_inputs = []
-        self.output_display = QTextEdit()
-        self.output_display.setReadOnly(True)
         self.schedule_button = QPushButton("Schedule Shifts")
         self.export_ical_button = QPushButton("Export to iCalendar")
         self.export_pdf_button = QPushButton("Export to PDF")
@@ -85,8 +83,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.export_ical_button)
         layout.addWidget(self.export_pdf_button)
         layout.addWidget(self.export_csv_button)
-        layout.addWidget(QLabel("Schedule Output:"))
-        layout.addWidget(self.output_display)
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
@@ -166,16 +162,17 @@ class MainWindow(QMainWindow):
             for input in self.worker_inputs
         ]
         # Schedule shifts
-        schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+         schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+        
         # Display the schedule
-        output = ""
-        self.schedule = schedule  # Save the schedule for exporting
-        for job, shifts in schedule.items():
-            output += f"Job {job}:\n"
-            for date, worker in shifts.items():
-                output += f"  {date}: {worker}\n"
-        self.output_display.setText(output)
-
+         output = ""
+         self.schedule = schedule  # Save the schedule for exporting
+            for job, shifts in schedule.items():
+                output += f"Job {job}:\n"
+                for date, worker in shifts.items():
+                    output += f"  {date}: {worker}\n"
+         self.output_display.setText(output)
+    
     def export_to_ical(self):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as iCalendar", "", "iCalendar Files (*.ics);;All Files (*)", options=options)
