@@ -115,23 +115,23 @@ class MainWindow(QMainWindow):
             unavailable_dates_input = QLineEdit()
             unavailable_dates_input.setFixedWidth(150)
 
-            self.worker_layout.addWidget(QLabel(f"Worker {i+1} Identification:"), i, 0)
+            self.worker_layout.addWidget(QLabel(f"Identificación {i+1}:"), i, 0)
             self.worker_layout.addWidget(identification_input, i, 1)
-            self.worker_layout.addWidget(QLabel("Working Dates (comma-separated periods):"), i, 2)
+            self.worker_layout.addWidget(QLabel("Cuando trabaja (separado por comas):"), i, 2)
             self.worker_layout.addWidget(working_dates_input, i, 3)
-            self.worker_layout.addWidget(QLabel("Percentage of Shifts Performed:"), i, 4)
+            self.worker_layout.addWidget(QLabel("Porcentaje de jornada:"), i, 4)
             self.worker_layout.addWidget(percentage_shifts_input, i, 5)
-            self.worker_layout.addWidget(QLabel("Group:"), i, 6)
+            self.worker_layout.addWidget(QLabel("Grupo:"), i, 6)
             self.worker_layout.addWidget(group_input, i, 7)
-            self.worker_layout.addWidget(QLabel("Position Incompatibility (comma-separated):"), i, 8)
+            self.worker_layout.addWidget(QLabel("No trabaja Rosell:"), i, 8)
             self.worker_layout.addWidget(position_incompatibility_input, i, 9)
-            self.worker_layout.addWidget(QLabel("Group Incompatibility (comma-separated):"), i, 10)
+            self.worker_layout.addWidget(QLabel("Incompatibilidad con grupo:"), i, 10)
             self.worker_layout.addWidget(group_incompatibility_input, i, 11)
-            self.worker_layout.addWidget(QLabel("Obligatory coverage (comma-separated dates):"), i, 12)
+            self.worker_layout.addWidget(QLabel("Guardias obligatorias (separadas por comas):"), i, 12)
             self.worker_layout.addWidget(obligatory_coverage_input, i, 13)
-            self.worker_layout.addWidget(QLabel("Unavailable Dates (comma-separated dates):"), i, 14)
+            self.worker_layout.addWidget(QLabel("Guardias No disponible (separado por comas):"), i, 14)
             self.worker_layout.addWidget(unavailable_dates_input, i, 15)
-
+            
             self.worker_inputs.append({
                 'identification': identification_input,
                 'working_dates': working_dates_input,
