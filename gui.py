@@ -192,6 +192,25 @@ class MainWindow(QMainWindow):
         self.schedule_window = ScheduleOutputWindow(schedule)
         self.schedule_window.show()
                         
+    def import_from_csv(self):
+        options = QFileDialog.Options()
+        filePath, _ = QFileDialog.getOpenFileName(self, "Import Workers from CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
+        if filePath:
+            workers = import_workers_from_csv(filePath)
+            for worker in workers:
+                # Update UI with imported worker data
+                self.num_workers_input.setText(str(len(workers)))
+                self.update_worker_inputs()
+                for i, worker in enumerate(workers):
+                    self.worker_inputs[i]['identification'].setText(worker.identification)
+                    self.worker_inputs[i]['working_dates'].setText(','.join([f"{start.strftime('%d/%m/%Y')}-{end.strftime('%d/%m/%Y')}" for start, end in worker.work_dates]))
+                    self.worker_inputs[i]['percentage_shifts'].setText(str(worker.percentage_shifts))
+                    self.worker_inputs[i]['group'].setText(worker.group)
+                    self.worker_inputs[i]['position_incompatibility'].setText(','.join(worker.incompatible_job))
+                    self.worker_inputs[i]['group_incompatibility'].setText(','.join(worker.group_incompatibility))
+                    self.worker_inputs[i]['obligatory_coverage'].setText(','.join([date.strftime('%d/%m/%Y') for date in worker.obligatory_coverage]))
+                    self.worker_inputs[i]['unavailable_dates'].setText(','.join([date.strftime('%d/%m/%Y') for date in worker.unavailable_dates]))
+
     def export_to_ical(self):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getSaveFileName(self, "Save Schedule as iCalendar", "", "iCalendar Files (*.ics);;All Files (*)", options=options)
