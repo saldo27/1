@@ -14,8 +14,8 @@ from reportlab.pdfgen import canvas
 
 class MainWindow(QMainWindow):
     def import_from_csv(self):
-    options = QFileDialog.Options()
-    filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
+        options = QFileDialog.Options()
+        filePath, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)", options=options)
     if filePath:
         workers = import_workers_from_csv(filePath)
         for worker in workers:
@@ -188,7 +188,7 @@ class MainWindow(QMainWindow):
             output += f"Job {job}:\n"
     for date, worker in shifts.items():
             output += f"  {date}: {worker}\n"
-    self.output_display.setText(output))
+    self.output_display.setText(output)
     
     def export_to_ical(self):
         options = QFileDialog.Options()
