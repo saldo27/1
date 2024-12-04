@@ -6,7 +6,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.DEBUG)
 
 class Worker:
-    def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, unavailable_dates=None):
+    def __init__(self, identification, work_dates=None, percentage=100.0, group='1', incompatible_job=None, group_incompatibility=None, obligatory_coverage=None, unavailable_dates=None, previously_assigned_shifts=None):
         self.identification = identification
         self.work_dates = work_dates if work_dates else []
         self.percentage_shifts = float(percentage) if percentage else 100.0
@@ -15,6 +15,7 @@ class Worker:
         self.group_incompatibility = group_incompatibility if group_incompatibility else []
         self.obligatory_coverage = obligatory_coverage if obligatory_coverage else []
         self.unavailable_dates = unavailable_dates if unavailable_dates else []
+        self.previously_assigned_shifts = previously_assigned_shifts if previously_assigned_shifts else []
 
 def import_workers_from_csv(filename):
     workers = []
@@ -144,12 +145,18 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
     schedule = defaultdict(dict)
     holidays_set = set(holidays)
     weekend_tracker = {worker.identification: 0 for worker in workers}
-    last_shift_dates = {worker.identification: [] for worker in workers}
+    last_shift_dates = {worker.identification: [date for date, _ in worker.previously_assigned_shifts] for worker in workers}
     job_count = {worker.identification: {job: 0 for job in jobs} for worker in workers}
     weekly_tracker = defaultdict(lambda: defaultdict(int))
     last_assigned_job = {worker.identification: None for worker in workers}
     last_assigned_day = {worker.identification: None for worker in workers}
     day_rotation_tracker = {worker.identification: {i: False for i in range(7)} for worker in workers}
+
+    # Integrate previously assigned shifts into the current schedule
+    for worker in workers:
+        for date, job in worker.previously_assigned_shifts:
+            if job in jobs:
+                assign_worker_to_shift(worker, date, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week, obligatory=False)
 
     valid_work_periods = []
     for period in work_periods:
@@ -220,6 +227,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
+    
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
