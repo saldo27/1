@@ -169,10 +169,10 @@ class MainWindow(QMainWindow):
         for input in self.worker_inputs:
             worker_data = {
                 'identification': input['identification'].text(),
-                'working_dates': [period.strip() for period in input['working_dates'].text().split(',')] if input['working_dates'].text() else [],
-                'percentage_shifts': float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
+                'work_dates': [period.strip() for period in input['working_dates'].text().split(',')] if input['working_dates'].text() else [],
+                'percentage': float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
                 'group': input['group'].text() or '1',
-                'position_incompatibility': input['position_incompatibility'].text().split(',') if input['position_incompatibility'].text() else [],
+                'incompatible_job': input['position_incompatibility'].text().split(',') if input['position_incompatibility'].text() else [],
                 'group_incompatibility': input['group_incompatibility'].text().split(',') if input['group_incompatibility'].text() else [],
                 'obligatory_coverage': [date.strip() for date in input['obligatory_coverage'].text().split(',')] if input['obligatory_coverage'].text() else [],
                 'unavailable_dates': [date.strip() for date in input['unavailable_dates'].text().split(',')] if input['unavailable_dates'].text() else []
