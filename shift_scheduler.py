@@ -25,6 +25,8 @@ def import_workers_from_csv(filename):
             logging.debug(f"CSV Row: {row}")
             work_dates = [(datetime.strptime(start.strip(), "%d/%m/%Y"), datetime.strptime(end.strip(), "%d/%m/%Y")) 
                           for period in row['Work Dates'].split(',') if '-' in period for start, end in [period.split('-')]]
+            previously_assigned_shifts = [(datetime.strptime(date.strip(), "%d/%m/%Y"), job.strip()) 
+                                          for date, job in zip(row['Assigned Shifts'].split(','), row['Assigned Jobs'].split(',')) if date and job]
             worker = Worker(
                 identification=row['Identification'],
                 work_dates=work_dates,
@@ -33,7 +35,8 @@ def import_workers_from_csv(filename):
                 incompatible_job=row['Incompatible Job'].split(','),
                 group_incompatibility=row['Group Incompatibility'].split(','),
                 obligatory_coverage=row['Obligatory Coverage'].split(','),
-                unavailable_dates=row['Unavailable Dates'].split(',')
+                unavailable_dates=row['Unavailable Dates'].split(','),
+                previously_assigned_shifts=previously_assigned_shifts
             )
             workers.append(worker)
     return workers
