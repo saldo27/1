@@ -157,12 +157,12 @@ class MainWindow(QMainWindow):
 
     def schedule_shifts(self):
     # Get inputs
-    work_periods = self.work_periods_input.text().split(',')
-    holidays = self.holidays_input.text().split(',')
-    jobs = self.jobs_input.text().split(',')
-    num_workers = int(self.num_workers_input.text())
-    min_distance = int(self.min_distance_input.text())
-    max_shifts_per_week = int(self.max_shifts_per_week_input.text())
+        work_periods = self.work_periods_input.text().split(',')
+        holidays = self.holidays_input.text().split(',')
+        jobs = self.jobs_input.text().split(',')
+        num_workers = int(self.num_workers_input.text())
+        min_distance = int(self.min_distance_input.text())
+        max_shifts_per_week = int(self.max_shifts_per_week_input.text())
     # Create workers list from user input
     workers = [
         Worker(
