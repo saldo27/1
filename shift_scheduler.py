@@ -138,10 +138,6 @@ def assign_worker_to_shift(worker, date, job, schedule, last_shift_dates, weeken
 def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week):
     logging.basicConfig(level=logging.DEBUG)
 
-    # Log imported workers and their shifts
-    for worker in workers:
-        logging.debug(f"Worker ID: {worker.identification}, Work Dates: {worker.work_dates}")
-
     schedule = defaultdict(dict)
     holidays_set = set(holidays)
     weekend_tracker = {worker.identification: 0 for worker in workers}
@@ -211,7 +207,7 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
                     assign_worker_to_shift(worker, date, job, schedule, last_shift_dates, weekend_tracker, weekly_tracker, job_count, holidays_set, min_distance, max_shifts_per_week)
                     last_assigned_job[worker.identification] = job
                     last_assigned_day[worker.identification] = date.weekday()
-                    day_rotation_tracker[worker.identification][date.weekday()] = True
+                    day_rotation_tracker[w.identification][date.weekday()] = True
                     assigned = True
 
                     iteration_count += 1
@@ -221,7 +217,6 @@ def schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shi
 
     logging.debug(f"Final schedule: {schedule}")
     return schedule
-
 def prepare_breakdown(schedule):
     breakdown = defaultdict(list)
     for job, shifts in schedule.items():
