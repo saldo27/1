@@ -167,34 +167,34 @@ class MainWindow(QMainWindow):
         # Create workers list from user input
         workers = []
         for input in self.worker_inputs:
-        worker_data = {
-            'identification': input['identification'].text(),
-            'working_dates': [period.strip() for period in input['working_dates'].text().split(',')] if input['working_dates'].text() else [],
-            'percentage_shifts': float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
-            'group': input['group'].text() or '1',
-            'position_incompatibility': input['position_incompatibility'].text().split(',') if input['position_incompatibility'].text() else [],
-            'group_incompatibility': input['group_incompatibility'].text().split(',') if input['group_incompatibility'].text() else [],
-            'obligatory_coverage': [date.strip() for date in input['obligatory_coverage'].text().split(',')] if input['obligatory_coverage'].text() else [],
-            'unavailable_dates': [date.strip() for date in input['unavailable_dates'].text().split(',')] if input['unavailable_dates'].text() else []
-        }
+            worker_data = {
+                'identification': input['identification'].text(),
+                'working_dates': [period.strip() for period in input['working_dates'].text().split(',')] if input['working_dates'].text() else [],
+                'percentage_shifts': float(input['percentage_shifts'].text() or 100),  # Default to 100 if blank
+                'group': input['group'].text() or '1',
+                'position_incompatibility': input['position_incompatibility'].text().split(',') if input['position_incompatibility'].text() else [],
+                'group_incompatibility': input['group_incompatibility'].text().split(',') if input['group_incompatibility'].text() else [],
+                'obligatory_coverage': [date.strip() for date in input['obligatory_coverage'].text().split(',')] if input['obligatory_coverage'].text() else [],
+                'unavailable_dates': [date.strip() for date in input['unavailable_dates'].text().split(',')] if input['unavailable_dates'].text() else []
+            }
 
-        # Check if previously_assigned_shifts exists and include it if available
-        if hasattr(input, 'previously_assigned_shifts'):
-            worker_data['previously_assigned_shifts'] = input['previously_assigned_shifts']
+            # Check if previously_assigned_shifts exists and include it if available
+            if hasattr(input, 'previously_assigned_shifts'):
+                worker_data['previously_assigned_shifts'] = input['previously_assigned_shifts']
 
-        workers.append(Worker(**worker_data))
+            workers.append(Worker(**worker_data))
 
-    # Schedule shifts
-    schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
-    
-    # Display the schedule
-    output = ""
-    self.schedule = schedule  # Save the schedule for exporting
-    for job, shifts in schedule.items():
-        output += f"Job {job}:\n"
-        for date, worker in shifts.items():
-            output += f"  {date}: {worker}\n"
-    self.output_display.setText(output)_display.setText(output)
+        # Schedule shifts
+        schedule = schedule_shifts(work_periods, holidays, jobs, workers, min_distance, max_shifts_per_week)
+        
+        # Display the schedule
+        output = ""
+        self.schedule = schedule  # Save the schedule for exporting
+        for job, shifts in schedule.items():
+            output += f"Job {job}:\n"
+            for date, worker in shifts.items():
+                output += f"  {date}: {worker}\n"
+        self.output_display.setText(output)
     
     def export_to_ical(self):
         options = QFileDialog.Options()
